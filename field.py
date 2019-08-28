@@ -128,11 +128,15 @@ class BigInt(Field):
         
         instance = self.__class__(name)
         instance._fields = {name: value}
-        
+
         return instance
 
+
     def __add__(self, other):
-        self.__general_operation(other, '+')
+        return self.__general_operation(other, '+')
+
+    def __sub__(self, other):
+        return self.__general_operation(other, '-')
 
 
 class Integer(BigInt):

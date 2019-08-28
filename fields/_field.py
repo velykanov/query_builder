@@ -1,3 +1,4 @@
+"""Field class module"""
 import decimal
 
 
@@ -38,6 +39,13 @@ class Field:
         ))
 
     def __mul__(self, other):
+        raise TypeError(self._unsupported_operand.format(
+            '*',
+            type(self).__name__,
+            type(other).__name__,
+        ))
+
+    def __rmul__(self, other):
         raise TypeError(self._unsupported_operand.format(
             '*',
             type(self).__name__,
@@ -121,59 +129,24 @@ class Field:
     def __repr__(self):
         return "<{} '{}'>".format(type(self).__name__, self.name)
 
-    def set_alias(self, alias):
-        self.alias = alias
-
-
-class BigInt(Field):
-    _type = 'bigint'
-    _min = -9223372036854775808
-    _max = 9223372036854775807
-
-    def __general_operation(self, other, operand, need_parenthesis=False):
+    def _general_operation(self, other, operand, need_parenthesis=False):
+        current_value = self._fields[self.name]
         if need_parenthesis:
-            self._fields[self.name] = '({})'.format(self._fields[self.name])
+            current_value = '({})'.format(current_value)
 
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
-            value = ' '.join((self._fields[self.name], operand, other.name))
+            value = other._fields[other.name]
         elif isinstance(other, (int, float, decimal.Decimal)):
             name = self.name
-            value = ' '.join((self._fields[self.name], operand, other))
+            value = other
         else:
-            super(BigInt, self).__add__(other)
+            super(type(self), self).__add__(other)
 
         instance = self.__class__(name)
-        instance._fields = {name: value}
+        instance._fields = {name: ' '.join((current_value, operand, value))}
 
         return instance
 
-
-    def __add__(self, other):
-        return self.__general_operation(other, '+')
-
-    def __sub__(self, other):
-        return self.__general_operation(other, '-')
-
-    def __truediv__(self, other):
-        return self.__general_operation(other, '/', True)
-
-    def __mul__(self, other):
-        return self.__general_operation(other, '*', True)
-
-
-class Integer(BigInt):
-    _type = 'integer'
-    _min = -2147483648
-    _max = 2147483647
-
-
-class SmallInt(Integer):
-    _type = 'smallint'
-    _min = -32768
-    _max = 32767
-
-
-class SmallSerial(SmallInt):
-    _type = 'smallserial'
-    _min = 1
+    def set_alias(self, alias):
+        self.alias = alias

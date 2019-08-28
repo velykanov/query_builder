@@ -3,7 +3,7 @@ import decimal
 
 class Field:
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
-    _unsupported_unary_operand = "unsupported operand type(s) for {} on type {}"
+    _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
     def __init__(self, name, alias=None):
         self.name = name
@@ -29,6 +29,20 @@ class Field:
 
     def __rsub__(self, other):
         return self.__sub__(other)
+
+    def __truediv__(self, other):
+        raise TypeError(self._unsupported_operand.format(
+            '/',
+            type(self).__name__,
+            type(other).__name__,
+        ))
+
+    def __mul__(self, other):
+        raise TypeError(self._unsupported_operand.format(
+            '*',
+            type(self).__name__,
+            type(other).__name__,
+        ))
 
     def __and__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -116,16 +130,19 @@ class BigInt(Field):
     _min = -9223372036854775808
     _max = 9223372036854775807
 
-    def __general_operation(self, other, operand):
+    def __general_operation(self, other, operand, need_parenthesis=False):
+        if need_parenthesis:
+            self._fields[self.name] = '({})'.format(self._fields[self.name])
+
         if isinstance(other, Field):
-            name = '{}_{}'.format(self.name, other.name)
-            value = '{} {} {}'.format(self._fields[self.name], operand, other.name)
+            name = '_'.join((self.name, other.name))
+            value = ' '.join((self._fields[self.name], operand, other.name))
         elif isinstance(other, (int, float, decimal.Decimal)):
             name = self.name
-            value = '{} {} {}'.format(self._fields[self.name], operand, other)
+            value = ' '.join((self._fields[self.name], operand, other))
         else:
             super(BigInt, self).__add__(other)
-        
+
         instance = self.__class__(name)
         instance._fields = {name: value}
 
@@ -137,6 +154,12 @@ class BigInt(Field):
 
     def __sub__(self, other):
         return self.__general_operation(other, '-')
+
+    def __truediv__(self, other):
+        return self.__general_operation(other, '/', True)
+
+    def __mul__(self, other):
+        return self.__general_operation(other, '*', True)
 
 
 class Integer(BigInt):

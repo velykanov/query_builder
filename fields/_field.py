@@ -1,5 +1,6 @@
 """Field class module"""
 import decimal
+import json
 
 
 class Field:
@@ -137,10 +138,17 @@ class Field:
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
             value = other._fields[other.name]
-        elif isinstance(other, (int, float, decimal.Decimal)):
+        elif isinstance(other, (int, float, bool, decimal.Decimal)):
             name = self.name
             value = other
+        elif isinstance(other, (list, tuple, set, dict)):
+            name = self.name
+            value = json.dumps(other)
+        elif isinstance(other, (str, dt.datetime, dt.date, dt.time)):
+            name = self.name
+            value = str(other)
         else:
+            # TODO: create mapping to raise correct type error
             super(type(self), self).__add__(other)
 
         instance = self.__class__(name)

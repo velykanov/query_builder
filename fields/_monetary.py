@@ -5,7 +5,7 @@ from . import Field
 class Monetary(Field):
     _type = 'monetary'
     _min = -92233720368547758.08
-    _min = 92233720368547758.07
+    _max = 92233720368547758.07
     _max_scale = 2
 
     def __add__(self, other):

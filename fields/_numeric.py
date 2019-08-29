@@ -38,7 +38,7 @@ class Decimal(Field):
             raise ValueError('Scale is bigger than allowed')
         self.scale = scale
 
-        super(Desimal, self).__init__(name, alias)
+        super(Decimal, self).__init__(name, alias)
 
     def __add__(self, other):
         return self._general_operation(other, '+')

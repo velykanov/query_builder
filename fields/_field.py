@@ -1,16 +1,27 @@
 """Field class module"""
+import datetime
 import decimal
+import inspect
 import json
+
+import helpers
 
 
 class Field:
+    """
+    General field class. Exists as an abstract
+
+    Args:
+        name (str): Column name in DB (**required**)
+        alias (str): Alias for column (``None`` - default)
+    """
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
     def __init__(self, name, alias=None):
-        self.name = name
+        self.name = helpers.quote_literal(name)
         self.alias = alias
-        self._fields = {name: name}
+        self._fields = {name: self.name}
 
     def __add__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -135,6 +146,8 @@ class Field:
         if need_parenthesis:
             current_value = '({})'.format(current_value)
 
+        name = None
+        value = None
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
             value = other._fields[other.name]
@@ -144,12 +157,12 @@ class Field:
         elif isinstance(other, (list, tuple, set, dict)):
             name = self.name
             value = json.dumps(other)
-        elif isinstance(other, (str, dt.datetime, dt.date, dt.time)):
+        elif isinstance(other, (str, datetime.datetime, datetime.date, datetime.time)):
             name = self.name
             value = str(other)
         else:
-            # TODO: create mapping to raise correct type error
-            super(type(self), self).__add__(other)
+            func_name = str(inspect.stack()[1].function)
+            getattr(Field(None), func_name)(other)
 
         instance = self.__class__(name)
         instance._fields = {name: ' '.join((current_value, operand, value))}

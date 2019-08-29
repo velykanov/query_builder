@@ -1,6 +1,10 @@
 """Fields package"""
 from ._field import Field
 
+from ._character import Char
+from ._character import Text
+from ._character import Varchar
+
 from ._monetary import Monetary
 
 from ._numeric import BigInt

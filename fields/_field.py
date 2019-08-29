@@ -141,6 +141,9 @@ class Field:
     def __repr__(self):
         return "<{} '{}'>".format(type(self).__name__, self.name)
 
+    def __str__(self):
+        return self._fields[self.name]
+
     def _general_operation(self, other, operand, need_parenthesis=False):
         current_value = self._fields[self.name]
         if need_parenthesis:
@@ -151,15 +154,15 @@ class Field:
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
             value = other._fields[other.name]
-        elif isinstance(other, (int, float, bool, decimal.Decimal)):
+        elif isinstance(other, (int, float, decimal.Decimal)):
             name = self.name
-            value = other
-        elif isinstance(other, (list, tuple, set, dict)):
+            value = float(other)
+        elif isinstance(other, (list, tuple, set, dict, bool)):
             name = self.name
-            value = json.dumps(other)
+            value = helpers.quote_ident(json.dumps(other))
         elif isinstance(other, (str, datetime.datetime, datetime.date, datetime.time)):
             name = self.name
-            value = str(other)
+            value = helpers.quote_ident(other)
         else:
             func_name = str(inspect.stack()[1].function)
             getattr(Field(None), func_name)(other)
@@ -171,3 +174,10 @@ class Field:
 
     def set_alias(self, alias):
         self.alias = alias
+
+        return self
+
+    def cast(self, as_type):
+        self._fields[self.name] = 'cast({} as {})'.format(self, as_type)
+
+        return self

@@ -2,7 +2,9 @@
 
 
 def quote_ident(ident):
-    pass
+    ident = str(ident).replace("'", "''").replace("\\", "\\\\")
+    
+    return "'{}'".format(ident)
 
 
 def quote_literal(literal):

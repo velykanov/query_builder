@@ -17,6 +17,15 @@ class Decimal(Field):
 
         super(Decimal, self).__init__(name, alias)
 
+    def _wrap_math_operation(self, operation, *args):
+        positions = ', '.join(['{}'] * (len(args) + 1))
+        self._fields[self.name] = '{}({})'.format(
+            operation,
+            positions.format(self, *args),
+        )
+
+        return self
+
     def __add__(self, other):
         return self._general_operation(other, '+')
 
@@ -29,20 +38,23 @@ class Decimal(Field):
     def __mul__(self, other):
         return self._general_operation(other, '*', True)
 
+    def __floordiv__(self, other):
+        return self._general_operation(other, '%', True)
+
+    def __pow__(self, other):
+        return self._general_operation(other, '%', True)
+
+    def __abs__(self):
+        return self._wrap_math_operation('abs')
+
     def max(self):
-        self._fields[self.name] = 'max({})'.format(self)
-    
-        return self
-    
+        return self._wrap_math_operation('max')
+
     def min(self):
-        self._fields[self.name] = 'max({})'.format(self)
-    
-        return self
+        return self._wrap_math_operation('min')
 
     def avg(self):
-        self._fields[self.name] = 'avg({})'.format(self)
-
-        return self
+        return self._wrap_math_operation('avg')
 
 
 class Double(Decimal):
@@ -60,6 +72,18 @@ class BigInt(Decimal):
 
     def __init__(self, name, alias=None):
         super(BigInt, self).__init__(name, alias)
+
+    def __lshift__(self, value):
+        return self._general_operation(value, '<<', True)
+
+    def __rlshift__(self, value):
+        return self.__lshift__(value)
+
+    def __rshift__(self, value):
+        return self._general_operation(value, '>>', True)
+
+    def __rrshift__(self, value):
+        return self.__rshift__(value)
 
 
 class BigSerial(BigInt):

@@ -33,6 +33,9 @@ class Field:
     def __radd__(self, other):
         return self.__add__(other)
 
+    def __iadd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         raise TypeError(self._unsupported_operand.format(
             '-',
@@ -41,6 +44,9 @@ class Field:
         ))
 
     def __rsub__(self, other):
+        return self.__sub__(other)
+
+    def __isub__(self, other):
         return self.__sub__(other)
 
     def __truediv__(self, other):

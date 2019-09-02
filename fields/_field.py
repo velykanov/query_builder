@@ -19,9 +19,9 @@ class Field:
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
     def __init__(self, name, alias=None):
-        self.name = helpers.quote_literal(name)
+        self.name = name
         self.alias = alias
-        self._fields = {name: self.name}
+        self._fields = {name: helpers.quote_literal(self.name)}
 
     def __add__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -162,7 +162,7 @@ class Field:
             value = other._fields[other.name]
         elif isinstance(other, (int, float, decimal.Decimal)):
             name = self.name
-            value = float(other)
+            value = str(other)
         elif isinstance(other, (list, tuple, set, dict, bool)):
             name = self.name
             value = helpers.quote_ident(json.dumps(other))

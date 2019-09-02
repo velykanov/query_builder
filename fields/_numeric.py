@@ -26,23 +26,29 @@ class Decimal(Field):
 
         return self
 
-    def __add__(self, other):
-        return self._general_operation(other, '+')
+    def __add__(self, value):
+        return self._general_operation(value, '+')
 
-    def __sub__(self, other):
-        return self._general_operation(other, '-')
+    def __sub__(self, value):
+        return self._general_operation(value, '-')
 
-    def __truediv__(self, other):
-        return self._general_operation(other, '/', True)
+    def __truediv__(self, value):
+        return self._general_operation(value, '/', True)
 
-    def __mul__(self, other):
-        return self._general_operation(other, '*', True)
+    def __mul__(self, value):
+        return self._general_operation(value, '*', True)
 
-    def __floordiv__(self, other):
-        return self._general_operation(other, '%', True)
+    def __mod__(self, value):
+        return self._general_operation(value, '%', True)
 
-    def __pow__(self, other):
-        return self._wrap_math_operation('power', other)
+    def __floordiv__(self, value):
+        return self.div(value)
+
+    def __pow__(self, value):
+        return self._general_operation(value, '^', True)
+
+    def __round__(self, places=0):
+        return self.round(places)
 
     def __abs__(self):
         return self._wrap_math_operation('abs')
@@ -71,9 +77,72 @@ class Decimal(Field):
     def ln(self):
         return self._wrap_math_operation('ln')
 
+    def radians(self):
+        return self._wrap_math_operation('radians')
+
+    def sign(self):
+        return self._wrap_math_operation('sign')
+
+    def sqrt(self):
+        return self._wrap_math_operation('sqrt')
+
+    def cbrt(self):
+        return self._wrap_math_operation('cbrt')
+
+    def sin(self):
+        return self._wrap_math_operation('sin')
+
+    def cos(self):
+        return self._wrap_math_operation('cos')
+
+    def asin(self):
+        return self._wrap_math_operation('asin')
+
+    def acos(self):
+        return self._wrap_math_operation('acos')
+
+    def tan(self):
+        return self._wrap_math_operation('tan')
+
+    def cot(self):
+        return self._wrap_math_operation('cot')
+
+    def atan(self):
+        return self._wrap_math_operation('atan')
+
+    def atan2(self, value):
+        return self._wrap_math_operation('atan2', value)
+
+    def width_bucket(self, left_bound, right_bound, count):
+        return self._wrap_math_operation(
+            'width_bucket',
+            left_bound,
+            right_bound,
+            count,
+        )
+
+    def mod(self, value):
+        return self._wrap_math_operation('mod', value)
+
+    def div(self, value):
+        return self._wrap_math_operation('div', value)
+
+    def power(self, value):
+        return self._wrap_math_operation('power', value)
+
+    def round(self, places=0):
+        return self._wrap_math_operation('round', places)
+
+    def trunc(self, places=0):
+        return self._wrap_math_operation('trunc', places)
+
     def log(self, base=10):
-        # TODO: check params order - it must be incorrect now
-        return self._wrap_math_operation('log', base)
+        self._fields[self.name] = 'log({base}, {value})'.format(
+            base=base,
+            value=self,
+        )
+
+        return self
 
 
 class Double(Decimal):

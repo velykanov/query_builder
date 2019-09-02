@@ -1,9 +1,15 @@
 """Fields package"""
 from ._field import Field
 
+from ._binary import Bytea
+
 from ._character import Char
 from ._character import Text
 from ._character import Varchar
+
+from ._datetime import Date
+from ._datetime import Time
+from ._datetime import Timestamp
 
 from ._monetary import Monetary
 

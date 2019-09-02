@@ -42,7 +42,7 @@ class Decimal(Field):
         return self._general_operation(other, '%', True)
 
     def __pow__(self, other):
-        return self._general_operation(other, '%', True)
+        return self._wrap_math_operation('power', other)
 
     def __abs__(self):
         return self._wrap_math_operation('abs')
@@ -55,6 +55,25 @@ class Decimal(Field):
 
     def avg(self):
         return self._wrap_math_operation('avg')
+
+    def ceil(self):
+        return self._wrap_math_operation('ceil')
+
+    def degrees(self):
+        return self._wrap_math_operation('degrees')
+
+    def exp(self):
+        return self._wrap_math_operation('exp')
+
+    def floor(self):
+        return self._wrap_math_operation('floor')
+
+    def ln(self):
+        return self._wrap_math_operation('ln')
+
+    def log(self, base=10):
+        # TODO: check params order - it must be incorrect now
+        return self._wrap_math_operation('log', base)
 
 
 class Double(Decimal):

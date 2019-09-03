@@ -113,6 +113,9 @@ class Model:
 
         return self
 
+    def join(self):
+        pass
+
     def where(self, clause):
         assert isinstance(clause, Clause)
 

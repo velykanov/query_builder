@@ -26,6 +26,9 @@ def quote_literal(literal):
     Returns:
         str: Quoted literal
     """
+    if literal is None:
+        return None
+
     if '.' in literal:
         table, column = literal.split('.', 1)
 

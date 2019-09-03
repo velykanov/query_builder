@@ -7,7 +7,7 @@ class Decimal(Field):
     _max_magnitude = 131072
     _max_scale = 16383
 
-    def __init__(self, name, alias=None, precision=None, scale=None):
+    def __init__(self, name, alias=None, table=None, precision=None, scale=None):
         if precision is not None and self._max_scale + self._max_magnitude < precision:
             raise ValueError('Precision is bigger than allowed')
         self.precision = precision
@@ -15,7 +15,7 @@ class Decimal(Field):
             raise ValueError('Scale is bigger than allowed')
         self.scale = scale
 
-        super(Decimal, self).__init__(name, alias)
+        super(Decimal, self).__init__(name, alias, table)
 
     def _wrap_math_operation(self, operation, *args):
         positions = ', '.join(['{}'] * (len(args) + 1))
@@ -170,8 +170,8 @@ class BigInt(Decimal):
     _max_magnitude = 19
     _max_scale = 0
 
-    def __init__(self, name, alias=None):
-        super(BigInt, self).__init__(name, alias)
+    def __init__(self, name, alias=None, table=None):
+        super(BigInt, self).__init__(name, alias, table)
 
     def __lshift__(self, value):
         return self._general_operation(value, '<<', True)

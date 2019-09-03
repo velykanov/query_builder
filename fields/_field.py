@@ -14,14 +14,17 @@ class Field:
     Args:
         name (str): Column name in DB (**required**)
         alias (str): Alias for column (``None`` - default)
+        table (str): Table name for prefixing (``None`` - default)
     """
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
-    def __init__(self, name, alias=None):
-        self.name = name
-        self.alias = alias
-        self._fields = {name: helpers.quote_literal(self.name)}
+    _operations = None
+
+    def __init__(self, name, alias=None, table=None):
+        self.name = helpers.quote_literal(name)
+        self._alias = helpers.quote_literal(alias)
+        self._table = helpers.quote_literal(table)
 
     def __add__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -143,41 +146,82 @@ class Field:
     def __repr__(self):
         return "<{} '{}'>".format(type(self).__name__, self.name)
 
+    def __operation_actions(self, operations):
+        operand, need_parenthesis, value, other_value = operations
+        operand = ' {} '.format(operand)
+
+        if isinstance(value, list):
+            value = self.__operation_actions(value)
+            if need_parenthesis:
+                value = '({})'.format(value)
+        elif isinstance(value, Field):
+            value = self._format_field(value)
+
+        if isinstance(other_value, list):
+            other_value = self.__operation_actions(other_value)
+            if need_parenthesis:
+                other_value = '({})'.format(other_value)
+        elif isinstance(other_value, Field):
+            other_value = self._format_field(other_value)
+
+        return operand.join((value, other_value))
+
+    def _format_field(self, value=None):
+        if value is None:
+            value = self
+
+        if value._table is not None:
+            value.name = '{}.{}'.format(value._table, value.name)
+
+        if value._alias is not None:
+            return '{} as {}'.format(value.name, value._alias)
+
+        return value.name
+
     def __str__(self):
-        return self._fields[self.name]
+        if self._operations is None:
+            return self._format_field()
+
+        return self.__operation_actions(self._operations)
 
     def _general_operation(self, other, operand, need_parenthesis=False):
-        current_value = self._fields[self.name]
-        if need_parenthesis:
-            current_value = '({})'.format(current_value)
-
         name = None
-        value = None
+        value = self._format_field()
+        if self._operations is not None:
+            value = self._operations
+
+        operations = None
+        other_value = None
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
-            value = other._fields[other.name]
-        elif isinstance(other, (int, float, decimal.Decimal)):
-            name = self.name
-            value = str(other)
+            other_value = other._format_field()
+            if other._operations is not None:
+                other_value = other._operations
         elif isinstance(other, (list, tuple, set, dict, bool)):
             name = self.name
-            value = helpers.quote_ident(json.dumps(other))
+            other_value = helpers.quote_ident(json.dumps(other))
+        elif isinstance(other, (int, float, decimal.Decimal)):
+            name = self.name
+            other_value = str(other)
         elif isinstance(other, (str, datetime.datetime, datetime.date, datetime.time)):
             name = self.name
-            value = helpers.quote_ident(other)
+            other_value = helpers.quote_ident(other)
         else:
             func_name = str(inspect.stack()[1].function)
             getattr(Field(None), func_name)(other)
 
         instance = self.__class__(name)
-        instance._fields = {name: ' '.join((current_value, operand, value))}
+        instance._operations = [operand, need_parenthesis, value, other_value]
 
         return instance
 
     def set_alias(self, alias):
-        self.alias = alias
+        self._alias = helpers.quote_literal(alias)
 
         return self
+
+    def set_table_prefix(self, table):
+        self._table = helpers.quote_literal(table)
 
     def cast(self, as_type):
         self._fields[self.name] = 'cast({} as {})'.format(self, as_type)

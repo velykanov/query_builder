@@ -13,11 +13,11 @@ class Text(Field):
 class Varchar(Text):
     _type = 'varchar'
 
-    def __init__(self, name, alias=None, max_length=None):
+    def __init__(self, name, alias=None, table=None, max_length=None):
         if max_length is None:
             self.max_length = 1
 
-        super(Varchar, self).__init__(name, alias)
+        super(Varchar, self).__init__(name, alias, table)
 
 
 class Char(Varchar):

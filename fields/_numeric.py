@@ -1,5 +1,5 @@
 """Numeric fields module"""
-from . import Field
+from ._field import Field
 
 
 class Decimal(Field):
@@ -46,6 +46,18 @@ class Decimal(Field):
 
     def __pow__(self, value):
         return self._general_operation(value, '^', True)
+
+    def __ge__(self, value):
+        return self._general_operation(value, '>=')
+
+    def __gt__(self, value):
+        return self._general_operation(value, '>')
+
+    def __le__(self, value):
+        return self._general_operation(value, '<=')
+
+    def __lt__(self, value):
+        return self._general_operation(value, '<')
 
     def __round__(self, places=0):
         return self.round(places)

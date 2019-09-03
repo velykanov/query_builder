@@ -2,8 +2,17 @@
 
 
 def quote_ident(ident):
+    """
+    Quotes identity
+
+    Args:
+        ident (str): Identity (**required**)
+
+    Returns:
+        str: Quoted identity
+    """
     ident = str(ident).replace("'", "''").replace("\\", "\\\\")
-    
+
     return "'{}'".format(ident)
 
 

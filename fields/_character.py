@@ -1,5 +1,5 @@
 """Character fields module"""
-from . import Field
+from ._field import Field
 
 
 class Text(Field):

@@ -126,11 +126,7 @@ class Field:
         ))
 
     def __eq__(self, other):
-        raise TypeError(self._unsupported_operand.format(
-            '==',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self._general_operation(other, '=')
 
     def __neg__(self):
         raise TypeError(self._unsupported_unary_operand.format(

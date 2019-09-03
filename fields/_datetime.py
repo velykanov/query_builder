@@ -1,5 +1,5 @@
 """Date/Time fields module"""
-from . import Field
+from ._field import Field
 
 
 class Date(Field):

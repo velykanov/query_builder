@@ -13,7 +13,7 @@ class Time(Field):
         if with_tz:
             self._type = 'timetz'
 
-        super(Timestamp, self).__init__(name, alias)
+        super(Time, self).__init__(name, alias)
 
 
 class Timestamp(Field):

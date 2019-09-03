@@ -14,7 +14,7 @@ class Clause:
     def __init__(self, field):
         self._field = field
 
-    def __and__(self, other):
+    def __join(self, other, operand='AND'):
         value = None
         if isinstance(other, bool):
             value = json.dumps(other)
@@ -28,32 +28,22 @@ class Clause:
                 ),
             )
 
-        print(value)
-        field = Expression('{} AND {}'.format(self._field, value))
-        print(field)
+        expression = None
+        if operand == 'AND':
+            expression = '{} AND {}'.format(self._field, value)
+        else:
+            expression = '({} OR {})'.format(self._field, value)
 
-        return self.__class__(field)
+        return self.__class__(Expression(expression))
+
+    def __and__(self, other):
+        return self.__join(other)
 
     def __rand__(self, other):
         return self.__and__(other)
 
     def __or__(self, other):
-        value = None
-        if isinstance(other, bool):
-            value = json.dumps(other)
-        elif isinstance(other, self.__class__):
-            value = other._field
-        else:
-            raise TypeError(
-                "unsupported operand type(s) for and: '{}' and '{}'".format(
-                    type(self).__name__,
-                    type(other).__name__,
-                ),
-            )
-
-        field = Expression('({} OR {})'.format(self._field, value))
-
-        return self.__class__(field)
+        return self.__join(other, 'OR')
 
     def __ror__(self, other):
         return self.__or__(other)

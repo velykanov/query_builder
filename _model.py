@@ -4,13 +4,17 @@ from expressions import Expression
 from fields import Field
 
 
-# TODO: implement join
-# TODO: implement aliasing
-# TODO: implement table prefixing
 class Model:
     _inner_state = {}
     def __init__(self, name):
         self._name = name
+        
+        self._set_name()
+
+    def _set_name(self):
+        for attr in dir(self):
+            if isinstance(getattr(self, attr), Field):
+                getattr(self, attr).set_table_name(self._name)
 
     def __repr__(self):
         return "<DB model '{}'>".format(type(self).__name__)
@@ -113,8 +117,17 @@ class Model:
 
         return self
 
-    def join(self):
-        pass
+    def join(self, model, condition):
+        assert isinstance(condition, (Expression, Field))
+
+        if 'join' not in self._inner_state:
+            self._inner_state['join'] = []
+
+        self._inner_state['join'].append(
+            ('JOIN', model._name, condition),
+        )
+
+        return self
 
     def where(self, clause):
         assert isinstance(clause, Clause)

@@ -19,10 +19,16 @@ class Decimal(Field):
 
     def _wrap_math_operation(self, operation, *args):
         positions = ', '.join(['{}'] * (len(args) + 1))
-        self._fields[self.name] = '{}({})'.format(
+        operation = '{}({})'.format(
             operation,
             positions.format(self, *args),
         )
+        
+        if self._operations is None:
+            return self.__class__(operation, self._alias, self._table)
+
+        # TODO: check correctness of the execution
+        self._operations[2] = operation
 
         return self
 
@@ -149,10 +155,15 @@ class Decimal(Field):
         return self._wrap_math_operation('trunc', places)
 
     def log(self, base=10):
-        self._fields[self.name] = 'log({base}, {value})'.format(
+        operation = 'log({base}, {value})'.format(
             base=base,
             value=self,
         )
+        
+        if self._operations is None:
+            return self.__class__(operation, self._alias, self._table)
+
+        self._operations[2] = operation
 
         return self
 

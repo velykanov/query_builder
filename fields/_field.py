@@ -186,12 +186,11 @@ class Field:
 
     def _general_operation(self, other, operand, need_parenthesis=False):
         name = None
+        other_value = None
         value = self._format_field()
         if self._operations is not None:
             value = self._operations
 
-        operations = None
-        other_value = None
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
             other_value = other._format_field()
@@ -224,6 +223,12 @@ class Field:
         self._table = helpers.quote_literal(table)
 
     def cast(self, as_type):
-        self._fields[self.name] = 'cast({} as {})'.format(self, as_type)
+        operation = 'cast({} as {})'.format(self, as_type)
+
+        if self._operations is None:
+            return self.__class__(operation, self._alias, self._table)
+
+        # TODO: the worst implementation ever
+        self._operations[2] = operation
 
         return self

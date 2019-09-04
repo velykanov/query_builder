@@ -38,7 +38,7 @@ class Model:
 
             if select is None:
                 query_parts.append(
-                    'INSERT INTO {table} ({fields}) VALUES {}'.format(
+                    'INSERT INTO {table} ({fields}) VALUES {values}'.format(
                         table=self._name,
                         fields=self._inner_state['insert']['fields'],
                         values=', '.join(

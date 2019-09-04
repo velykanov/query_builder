@@ -23,7 +23,7 @@ class Decimal(Field):
             operation,
             positions.format(self, *args),
         )
-        
+
         if self._operations is None:
             return self.__class__(operation, self._alias, self._table)
 
@@ -159,7 +159,7 @@ class Decimal(Field):
             base=base,
             value=self,
         )
-        
+
         if self._operations is None:
             return self.__class__(operation, self._alias, self._table)
 

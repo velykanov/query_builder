@@ -9,6 +9,9 @@ class Text(Field):
         """Do concatenation"""
         return self._general_operation(other, '||')
 
+    def upper(self):
+        return self._wrap_function('upper')
+
 
 class Varchar(Text):
     _type = 'varchar'

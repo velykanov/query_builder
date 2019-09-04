@@ -4,7 +4,7 @@ import decimal
 import inspect
 import json
 
-import helpers
+from .. import helpers
 
 
 class Field:
@@ -164,19 +164,25 @@ class Field:
         elif isinstance(other_value, Field):
             other_value = self._format_field(other_value)
 
-        return operand.join((value, other_value))
+        result = operand.join((value, other_value))
+
+        if self._alias is None:
+            return result
+
+        return '{} AS {}'.format(result, self._alias)
 
     def _format_field(self, value=None):
         if value is None:
             value = self
 
+        name = value.name
         if value._table is not None:
-            value.name = '{}.{}'.format(value._table, value.name)
+            name = '{}.{}'.format(value._table, value.name)
 
         if value._alias is not None:
-            return '{} as {}'.format(value.name, value._alias)
+            return '{} AS {}'.format(name, value._alias)
 
-        return value.name
+        return name
 
     def __str__(self):
         if self._operations is None:
@@ -213,6 +219,21 @@ class Field:
         instance._operations = [operand, need_parenthesis, value, other_value]
 
         return instance
+
+    def _wrap_function(self, function, *args):
+        positions = ', '.join(['{}'] * (len(args) + 1))
+        function = '{}({})'.format(
+            function,
+            positions.format(self, *args),
+        )
+
+        if self._operations is None:
+            return self.__class__(function, self._alias, self._table)
+
+        # TODO: check correctness of the execution
+        self._operations[2] = function
+
+        return self
 
     def set_alias(self, alias):
         self._alias = helpers.quote_literal(alias)

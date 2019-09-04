@@ -1,20 +1,20 @@
 """General model module"""
-from expressions import Clause
-from expressions import Expression
-from fields import Field
+from ..expressions import Clause
+from ..expressions import Expression
+from ..fields import Field
 
 
 class Model:
     _inner_state = {}
     def __init__(self, name):
         self._name = name
-        
+
         self._set_name()
 
     def _set_name(self):
         for attr in dir(self):
             if isinstance(getattr(self, attr), Field):
-                getattr(self, attr).set_table_name(self._name)
+                getattr(self, attr).set_table_prefix(self._name)
 
     def __repr__(self):
         return "<DB model '{}'>".format(type(self).__name__)
@@ -79,15 +79,20 @@ class Model:
         return ' '.join(query_parts)
 
     def select(self, *fields):
-        assert all(isinstance(field, (Expression, Field)) for field in fields)
+        if not all(isinstance(field, (Expression, Field)) for field in fields):
+            raise TypeError('fields must be either Expression or Field')
 
-        self._inner_state['select'] = fields
+        if fields:
+            self._inner_state['select'] = fields
+        else:
+            self._inner_state['select'] = ('*',)
 
         return self
 
     def insert(self, fields, values, operations=None):
         # TODO: implement values instance checking for operations applying
-        assert all(isinstance(field, Field) for field in fields)
+        if not all(isinstance(field, Field) for field in fields):
+            raise TypeError('fields must be Field')
 
         self._inner_state['insert'] = {
             'fields': fields,
@@ -98,7 +103,8 @@ class Model:
         return self
 
     def update(self, *fields):
-        assert all(isinstance(field, Field) for field in fields)
+        if not all(isinstance(field, Field) for field in fields):
+            raise TypeError('fields must be Field')
 
         self._inner_state['update'] = fields
 
@@ -110,7 +116,8 @@ class Model:
         return self
 
     def returning(self, *fields):
-        assert all(isinstance(field, (Expression, Field)) for field in fields)
+        if not all(isinstance(field, (Expression, Field)) for field in fields):
+            raise TypeError('fields must be either Expression or Field')
 
         if fields:
             self._inner_state['returning'] = fields
@@ -118,7 +125,8 @@ class Model:
         return self
 
     def join(self, model, condition):
-        assert isinstance(condition, (Expression, Field))
+        if not isinstance(condition, (Expression, Field)):
+            raise TypeError('condition must be either Expression or Field')
 
         if 'join' not in self._inner_state:
             self._inner_state['join'] = []
@@ -130,14 +138,16 @@ class Model:
         return self
 
     def where(self, clause):
-        assert isinstance(clause, Clause)
+        if not isinstance(clause, Clause):
+            raise TypeError('clause must be Clause')
 
         self._inner_state['where'] = clause
 
         return self
 
     def with_cte(self, alias, model):
-        assert isinstance(model, self)
+        if not isinstance(model, self):
+            raise TypeError('model must be self')
 
         self._inner_state['with'] = {
             'alias': alias,

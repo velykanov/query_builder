@@ -8,6 +8,9 @@ import json
 from .. import helpers
 
 
+# TODO: rewrite __r*__ methods
+# TODO: fix interaction with operations and functions
+# TODO: add instance additional initial variables support while creating new instance
 class Field:
     """
     General field class. Exists as an abstract
@@ -20,13 +23,18 @@ class Field:
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
-    _operations = None
     _functions = None
+    _operations = None
 
-    def __init__(self, name, alias=None, table=None):
-        self.name = helpers.quote_literal(name)
-        self._alias = helpers.quote_literal(alias)
-        self._table = helpers.quote_literal(table)
+    def __init__(self, name, alias=None, table=None, quote=True):
+        if quote:
+            self.name = helpers.quote_literal(name)
+            self._alias = helpers.quote_literal(alias)
+            self._table = helpers.quote_literal(table)
+        else:
+            self.name = name
+            self._alias = alias
+            self._table = table
 
     def __add__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -69,11 +77,7 @@ class Field:
         ))
 
     def __rmul__(self, other):
-        raise TypeError(self._unsupported_operand.format(
-            '*',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self.__mul__(other)
 
     def __and__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -181,13 +185,30 @@ class Field:
         if value._table is not None:
             name = '{}.{}'.format(value._table, value.name)
 
+        if value._functions is not None:
+            def _unwrap(functions):
+                func_name = list(functions.keys())[0]
+                new_args = []
+
+                for arg in functions[func_name]:
+                    if isinstance(arg, dict):
+                        arg = _unwrap(arg)
+                    new_args.append(arg)
+
+                return '{}({})'.format(
+                    func_name,
+                    ', '.join(['{}'] * len(new_args)).format(*new_args),
+                )
+
+            name = _unwrap(value._functions)
+
         if value._alias is not None:
             return '{} AS {}'.format(name, value._alias)
 
         return name
 
     def __str__(self):
-        if self._operations is None and self._functions is None:
+        if self._operations is None:
             return self._format_field()
 
         return self.__operation_actions(self._operations)
@@ -219,34 +240,25 @@ class Field:
 
         instance = self.__class__(name)
         instance._operations = [operand, need_parenthesis, value, other_value]
+        instance._functions = self._functions
 
         return instance
 
-    def _wrap_function(self, function, *args):
-        positions = ', '.join(['{}'] * (len(args) + 1))
-        function = '{}({})'.format(
-            function,
-            positions.format(self, *args),
-        )
-
-        if self._operations is None:
-            return self.__class__(function, self._alias, self._table)
-
-        # TODO: check correctness of the execution
-        self._operations[2] = function
+    def _wrap_function(self, func_name):
+        instance = self.__class__(self.name, self._alias, self._table, False)
+        instance._operations = self._operations
+        self._alias = None
 
         if self._functions is None:
-            self._functions = {
-                'function': function,
-                'args': (self, *args),
+            instance._functions = {
+                func_name: (self,),
             }
         else:
-            self._functions = {
-                'function': function,
-                'args': (copy.deepcopy(self._functions), *args),
+            instance._functions = {
+                func_name: (copy.deepcopy(self._functions),),
             }
 
-        return self
+        return instance
 
     def set_alias(self, alias):
         self._alias = helpers.quote_literal(alias)
@@ -260,7 +272,7 @@ class Field:
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
-            return self.__class__(operation, self._alias, self._table)
+            return self.__class__(operation, self._alias, self._table, True)
 
         # TODO: the worst implementation ever
         self._operations[2] = operation

@@ -12,15 +12,18 @@ class Text(Field):
     def upper(self):
         return self._wrap_function('upper')
 
+    def lower(self):
+        return self._wrap_function('lower')
+
 
 class Varchar(Text):
     _type = 'varchar'
 
-    def __init__(self, name, alias=None, table=None, max_length=None):
+    def __init__(self, name, alias=None, table=None, quote=True, max_length=None):
         if max_length is None:
             self.max_length = 1
 
-        super(Varchar, self).__init__(name, alias, table)
+        super(Varchar, self).__init__(name, alias, table, quote)
 
 
 class Char(Varchar):

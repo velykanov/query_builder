@@ -1,4 +1,5 @@
 """Field class module"""
+import copy
 import datetime
 import decimal
 import inspect
@@ -20,6 +21,7 @@ class Field:
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
     _operations = None
+    _functions = None
 
     def __init__(self, name, alias=None, table=None):
         self.name = helpers.quote_literal(name)
@@ -185,7 +187,7 @@ class Field:
         return name
 
     def __str__(self):
-        if self._operations is None:
+        if self._operations is None and self._functions is None:
             return self._format_field()
 
         return self.__operation_actions(self._operations)
@@ -232,6 +234,17 @@ class Field:
 
         # TODO: check correctness of the execution
         self._operations[2] = function
+
+        if self._functions is None:
+            self._functions = {
+                'function': function,
+                'args': (self, *args),
+            }
+        else:
+            self._functions = {
+                'function': function,
+                'args': (copy.deepcopy(self._functions), *args),
+            }
 
         return self
 

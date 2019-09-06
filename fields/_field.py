@@ -244,18 +244,18 @@ class Field:
 
         return instance
 
-    def _wrap_function(self, func_name):
+    def _wrap_function(self, func_name, *args):
         instance = self.__class__(self.name, self._alias, self._table, False)
         instance._operations = self._operations
         self._alias = None
 
         if self._functions is None:
             instance._functions = {
-                func_name: (self,),
+                func_name: (self, *args),
             }
         else:
             instance._functions = {
-                func_name: (copy.deepcopy(self._functions),),
+                func_name: (copy.deepcopy(self._functions), *args),
             }
 
         return instance

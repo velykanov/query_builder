@@ -9,6 +9,9 @@ class Text(Field):
         """Do concatenation"""
         return self._general_operation(other, '||')
 
+    def __radd__(self, other):
+        return self._general_operation(other, '||', inverse=True)
+
     def upper(self):
         return self._wrap_function('upper')
 

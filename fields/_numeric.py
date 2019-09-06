@@ -38,8 +38,14 @@ class Decimal(Field):
     def __sub__(self, value):
         return self._general_operation(value, '-')
 
+    def __rsub__(self, value):
+        return self._general_operation(value, '-', inverse=True)
+
     def __truediv__(self, value):
         return self._general_operation(value, '/', True)
+
+    def __rtruediv__(self, value):
+        return self._general_operation(value, '/', True, True)
 
     def __mul__(self, value):
         return self._general_operation(value, '*', True)
@@ -188,13 +194,13 @@ class BigInt(Decimal):
         return self._general_operation(value, '<<', True)
 
     def __rlshift__(self, value):
-        return self.__lshift__(value)
+        return self._general_operation(value, '<<', True, True)
 
     def __rshift__(self, value):
         return self._general_operation(value, '>>', True)
 
     def __rrshift__(self, value):
-        return self.__rshift__(value)
+        return self._general_operation
 
 
 class BigSerial(BigInt):

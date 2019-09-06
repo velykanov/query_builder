@@ -26,7 +26,7 @@ class Field:
     _functions = None
     _operations = None
 
-    def __init__(self, name, alias=None, table=None, quote=True):
+    def __init__(self, name, alias=None, table=None, quote=True, **kwargs):
         if quote:
             self.name = helpers.quote_literal(name)
             self._alias = helpers.quote_literal(alias)
@@ -35,6 +35,8 @@ class Field:
             self.name = name
             self._alias = alias
             self._table = table
+
+        self.kwargs = kwargs
 
     def __add__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -213,7 +215,7 @@ class Field:
 
         return self.__operation_actions(self._operations)
 
-    def _general_operation(self, other, operand, need_parenthesis=False):
+    def _general_operation(self, other, operand, need_parenthesis=False, inverse=False):
         name = None
         other_value = None
         value = self._format_field()
@@ -238,14 +240,18 @@ class Field:
             func_name = str(inspect.stack()[1].function)
             getattr(Field(None), func_name)(other)
 
-        instance = self.__class__(name)
-        instance._operations = [operand, need_parenthesis, value, other_value]
+        instance = self.__class__(name, **self.kwargs)
+        instance._operations = [
+            operand,
+            need_parenthesis,
+            *[value, other_value][::-1 if inverse else 1],
+        ]
         instance._functions = self._functions
 
         return instance
 
     def _wrap_function(self, func_name, *args):
-        instance = self.__class__(self.name, self._alias, self._table, False)
+        instance = self.__class__(self.name, self._alias, self._table, False, **self.kwargs)
         instance._operations = self._operations
         self._alias = None
 
@@ -272,7 +278,7 @@ class Field:
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
-            return self.__class__(operation, self._alias, self._table, True)
+            return self.__class__(operation, self._alias, self._table, False, **self.kwargs)
 
         # TODO: the worst implementation ever
         self._operations[2] = operation

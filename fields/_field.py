@@ -174,6 +174,9 @@ class Field:
 
         result = operand.join((value, other_value))
 
+        if self._functions:
+            result = self._unwrap_functions(self._functions)
+
         if self._alias is None:
             return result
 
@@ -188,21 +191,7 @@ class Field:
             name = '{}.{}'.format(value._table, value.name)
 
         if value._functions is not None:
-            def _unwrap(functions):
-                func_name = list(functions.keys())[0]
-                new_args = []
-
-                for arg in functions[func_name]:
-                    if isinstance(arg, dict):
-                        arg = _unwrap(arg)
-                    new_args.append(arg)
-
-                return '{}({})'.format(
-                    func_name,
-                    ', '.join(['{}'] * len(new_args)).format(*new_args),
-                )
-
-            name = _unwrap(value._functions)
+            name = value._unwrap_functions(value._functions)
 
         if value._alias is not None:
             return '{} AS {}'.format(name, value._alias)
@@ -218,13 +207,13 @@ class Field:
     def _general_operation(self, other, operand, need_parenthesis=False, inverse=False):
         name = None
         other_value = None
-        value = self._format_field()
+        value = self
         if self._operations is not None:
             value = self._operations
 
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
-            other_value = other._format_field()
+            other_value = other
             if other._operations is not None:
                 other_value = other._operations
         elif isinstance(other, (list, tuple, set, dict, bool)):
@@ -250,21 +239,42 @@ class Field:
 
         return instance
 
-    def _wrap_function(self, func_name, *args):
-        instance = self.__class__(self.name, self._alias, self._table, False, **self.kwargs)
+    def _wrap_function(self, func_name, *args, inverse=False):
+        instance = self.__class__(
+            self.name,
+            self._alias,
+            self._table,
+            False,
+            **self.kwargs,
+        )
         instance._operations = self._operations
         self._alias = None
 
         if self._functions is None:
             instance._functions = {
-                func_name: (self, *args),
+                func_name: (*args, self) if inverse else (self, *args),
             }
         else:
+            functions = copy.deepcopy(self._functions)
             instance._functions = {
-                func_name: (copy.deepcopy(self._functions), *args),
+                func_name: (*args, functions) if inverse else (functions, *args),
             }
 
         return instance
+
+    def _unwrap_functions(self, functions):
+        func_name = list(functions.keys())[0]
+        new_args = []
+
+        for arg in functions[func_name]:
+            if isinstance(arg, dict):
+                arg = self._unwrap_functions(arg)
+            new_args.append(arg)
+
+        return '{}({})'.format(
+            func_name,
+            ', '.join(['{}'] * len(new_args)).format(*new_args),
+        )
 
     def set_alias(self, alias):
         self._alias = helpers.quote_literal(alias)
@@ -278,7 +288,13 @@ class Field:
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
-            return self.__class__(operation, self._alias, self._table, False, **self.kwargs)
+            return self.__class__(
+                operation,
+                self._alias,
+                self._table,
+                False,
+                **self.kwargs,
+            )
 
         # TODO: the worst implementation ever
         self._operations[2] = operation

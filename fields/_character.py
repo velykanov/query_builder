@@ -26,7 +26,7 @@ class Varchar(Text):
         if max_length is None:
             self.max_length = 1
 
-        super(Varchar, self).__init__(name, alias, table, quote)
+        super(Varchar, self).__init__(name, alias, table, quote, max_length=max_length)
 
 
 class Char(Varchar):

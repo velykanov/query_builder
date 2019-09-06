@@ -7,7 +7,7 @@ class Decimal(Field):
     _max_magnitude = 131072
     _max_scale = 16383
 
-    def __init__(self, name, alias=None, table=None, precision=None, scale=None):
+    def __init__(self, name, alias=None, table=None, quote=True, precision=None, scale=None):
         if precision is not None and self._max_scale + self._max_magnitude < precision:
             raise ValueError('Precision is bigger than allowed')
         self.precision = precision
@@ -15,22 +15,14 @@ class Decimal(Field):
             raise ValueError('Scale is bigger than allowed')
         self.scale = scale
 
-        super(Decimal, self).__init__(name, alias, table)
-
-    def _wrap_math_operation(self, operation, *args):
-        positions = ', '.join(['{}'] * (len(args) + 1))
-        operation = '{}({})'.format(
-            operation,
-            positions.format(self, *args),
+        super(Decimal, self).__init__(
+            name,
+            alias,
+            table,
+            quote,
+            precision=precision,
+            scale=scale,
         )
-
-        if self._operations is None:
-            return self.__class__(operation, self._alias, self._table)
-
-        # TODO: check correctness of the execution
-        self._operations[2] = operation
-
-        return self
 
     def __add__(self, value):
         return self._general_operation(value, '+')
@@ -53,11 +45,17 @@ class Decimal(Field):
     def __mod__(self, value):
         return self._general_operation(value, '%', True)
 
+    def __rmod__(self, value):
+        return self._general_operation(value, '%', True, True)
+
     def __floordiv__(self, value):
         return self.div(value)
 
     def __pow__(self, value):
         return self._general_operation(value, '^', True)
+
+    def __rpow__(self, value):
+        return self._general_operation(value, '^', True, True)
 
     def __ge__(self, value):
         return self._general_operation(value, '>=')
@@ -75,103 +73,88 @@ class Decimal(Field):
         return self.round(places)
 
     def __abs__(self):
-        return self._wrap_math_operation('abs')
+        return self._wrap_function('abs')
 
     def max(self):
-        return self._wrap_math_operation('max')
+        return self._wrap_function('max')
 
     def min(self):
-        return self._wrap_math_operation('min')
+        return self._wrap_function('min')
 
     def avg(self):
-        return self._wrap_math_operation('avg')
+        return self._wrap_function('avg')
 
     def ceil(self):
-        return self._wrap_math_operation('ceil')
+        return self._wrap_function('ceil')
 
     def degrees(self):
-        return self._wrap_math_operation('degrees')
+        return self._wrap_function('degrees')
 
     def exp(self):
-        return self._wrap_math_operation('exp')
+        return self._wrap_function('exp')
 
     def floor(self):
-        return self._wrap_math_operation('floor')
+        return self._wrap_function('floor')
 
     def ln(self):
-        return self._wrap_math_operation('ln')
+        return self._wrap_function('ln')
 
     def radians(self):
-        return self._wrap_math_operation('radians')
+        return self._wrap_function('radians')
 
     def sign(self):
-        return self._wrap_math_operation('sign')
+        return self._wrap_function('sign')
 
     def sqrt(self):
-        return self._wrap_math_operation('sqrt')
+        return self._wrap_function('sqrt')
 
     def cbrt(self):
-        return self._wrap_math_operation('cbrt')
+        return self._wrap_function('cbrt')
 
     def sin(self):
-        return self._wrap_math_operation('sin')
+        return self._wrap_function('sin')
 
     def cos(self):
-        return self._wrap_math_operation('cos')
+        return self._wrap_function('cos')
 
     def asin(self):
-        return self._wrap_math_operation('asin')
+        return self._wrap_function('asin')
 
     def acos(self):
-        return self._wrap_math_operation('acos')
+        return self._wrap_function('acos')
 
     def tan(self):
-        return self._wrap_math_operation('tan')
+        return self._wrap_function('tan')
 
     def cot(self):
-        return self._wrap_math_operation('cot')
+        return self._wrap_function('cot')
 
     def atan(self):
-        return self._wrap_math_operation('atan')
+        return self._wrap_function('atan')
 
     def atan2(self, value):
-        return self._wrap_math_operation('atan2', value)
+        return self._wrap_function('atan2', value)
 
     def width_bucket(self, left_bound, right_bound, count):
-        return self._wrap_math_operation(
-            'width_bucket',
-            left_bound,
-            right_bound,
-            count,
-        )
+        return self._wrap_function('width_bucket', left_bound, right_bound, count)
 
     def mod(self, value):
-        return self._wrap_math_operation('mod', value)
+        return self._wrap_function('mod', value)
 
     def div(self, value):
-        return self._wrap_math_operation('div', value)
+        return self._wrap_function('div', value)
 
     def power(self, value):
-        return self._wrap_math_operation('power', value)
+        return self._wrap_function('power', value)
 
     def round(self, places=0):
-        return self._wrap_math_operation('round', places)
+        return self._wrap_function('round', places)
 
     def trunc(self, places=0):
-        return self._wrap_math_operation('trunc', places)
+        return self._wrap_function('trunc', places)
 
     def log(self, base=10):
-        operation = 'log({base}, {value})'.format(
-            base=base,
-            value=self,
-        )
-
-        if self._operations is None:
-            return self.__class__(operation, self._alias, self._table)
-
-        self._operations[2] = operation
-
-        return self
+        return self._wrap_function('log', base, inverse=True)
 
 
 class Double(Decimal):
@@ -187,8 +170,8 @@ class BigInt(Decimal):
     _max_magnitude = 19
     _max_scale = 0
 
-    def __init__(self, name, alias=None, table=None):
-        super(BigInt, self).__init__(name, alias, table)
+    def __init__(self, name, alias=None, table=None, quote=True, **kwargs):
+        super(BigInt, self).__init__(name, alias, table, quote)
 
     def __lshift__(self, value):
         return self._general_operation(value, '<<', True)
@@ -200,7 +183,7 @@ class BigInt(Decimal):
         return self._general_operation(value, '>>', True)
 
     def __rrshift__(self, value):
-        return self._general_operation
+        return self._general_operation(value, '>>', True, True)
 
 
 class BigSerial(BigInt):

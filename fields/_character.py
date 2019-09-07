@@ -25,8 +25,23 @@ class Varchar(Text):
     def __init__(self, name, alias=None, table=None, quote=True, max_length=None):
         if max_length is None:
             self.max_length = 1
+        else:
+            self.max_length = max_length
+
+        self._constraints = {
+            'max_length': self.max_length,
+        }
 
         super(Varchar, self).__init__(name, alias, table, quote, max_length=max_length)
+
+    def _check_constraints(self, value):
+        if isinstance(value, str) and len(value) <= self._constraints['max_length']:
+            return True
+
+        if isinstance(value, Field):
+            return True
+
+        raise ValueError('value does not conform constraints')
 
 
 class Char(Varchar):

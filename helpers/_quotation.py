@@ -1,4 +1,5 @@
 """Quotation module"""
+import json
 
 
 def quote_ident(ident):
@@ -11,6 +12,9 @@ def quote_ident(ident):
     Returns:
         str: Quoted identity
     """
+    if isinstance(ident, (int, float)):
+        return json.dumps(ident)
+
     ident = str(ident).replace("'", "''").replace("\\", "\\\\")
 
     return "'{}'".format(ident)

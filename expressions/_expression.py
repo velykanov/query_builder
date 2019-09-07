@@ -1,6 +1,7 @@
 """Expressions module"""
 
 
+# TODO: probably implement | and & operations
 class Expression:
     """
     Expression class helps write raw SQL queries

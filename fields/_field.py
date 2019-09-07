@@ -19,10 +19,17 @@ class Field:
         name (str): Column name in DB (**required**)
         alias (str): Alias for column (``None`` - default)
         table (str): Table name for prefixing (``None`` - default)
+        quote (bool): Defines whether quote name, alias and table or not
+            (``True`` - default)
+
+    Raises:
+        TypeError: in case operation is not allowed
+        ValueError: in case of not conforming to constraints
     """
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
+    _constraints = None
     _functions = None
     _operations = None
 
@@ -137,6 +144,8 @@ class Field:
         ))
 
     def __eq__(self, other):
+        self._check_constraints(other)
+
         return self._general_operation(other, '=')
 
     def __neg__(self):
@@ -300,3 +309,8 @@ class Field:
         self._operations[2] = operation
 
         return self
+
+    def _check_constraints(self, value):
+        if self._constraints is not None:
+            raise NotImplementedError('implement in child class')
+

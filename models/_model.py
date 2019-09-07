@@ -1,4 +1,5 @@
 """General model module"""
+from .. import helpers
 from ..expressions import Clause
 from ..expressions import Expression
 from ..fields import Field
@@ -31,7 +32,11 @@ class Model:
             )
 
         if 'delete' in self._inner_state:
-            query_parts.append('DELETE FROM {table}'.format(table=self._name))
+            query_parts.append(
+                'DELETE FROM {table}'.format(
+                    table=helpers.quote_literal(self._name),
+                )
+            )
 
         if 'insert' in self._inner_state:
             select = self._inner_state.pop('select', None)
@@ -39,11 +44,13 @@ class Model:
             if select is None:
                 query_parts.append(
                     'INSERT INTO {table} ({fields}) VALUES {values}'.format(
-                        table=self._name,
-                        fields=self._inner_state['insert']['fields'],
+                        table=helpers.quote_literal(self._name),
+                        fields=', '.join(
+                            str(field) for field in self._inner_state['insert']['fields']
+                        ),
                         values=', '.join(
                             '({})'.format(
-                                ', '.join(value for value in values_row)
+                                ', '.join(helpers.quote_ident(value) for value in values_row)
                             ) for values_row in self._inner_state['insert']['values']
                         ),
                     )
@@ -51,7 +58,7 @@ class Model:
             else:
                 query_parts.append(
                     'INSERT INTO {table} ({fields}) {query}'.format(
-                        table=self._name,
+                        table=helpers.quote_literal(self._name),
                         fields=self._inner_state['insert']['fields'],
                         query=select,
                     )
@@ -59,7 +66,7 @@ class Model:
         elif 'update' in self._inner_state:
             query_parts.append(
                 'UPDATE {table} SET {pairs}'.format(
-                    table=self._name,
+                    table=helpers.quote_literal(self._name),
                     pairs=', '.join(map(str, self._inner_state['update'])),
                 )
             )
@@ -67,7 +74,7 @@ class Model:
             query_parts.append(
                 'SELECT {fields} FROM {table}'.format(
                     fields=', '.join(map(str, self._inner_state['select'])),
-                    table=self._name,
+                    table=helpers.quote_literal(self._name),
                 )
             )
 
@@ -75,6 +82,9 @@ class Model:
             query_parts.append(
                 'WHERE {clause}'.format(clause=self._inner_state['where'])
             )
+
+        # clear inner state
+        self._inner_state = {}
 
         return ' '.join(query_parts)
 
@@ -138,8 +148,8 @@ class Model:
         return self
 
     def where(self, clause):
-        if not isinstance(clause, Clause):
-            raise TypeError('clause must be Clause')
+        if not isinstance(clause, (Clause, Expression)):
+            raise TypeError('clause must be Clause or Expression')
 
         self._inner_state['where'] = clause
 

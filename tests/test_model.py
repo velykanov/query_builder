@@ -135,13 +135,12 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
-        # TODO: check _functions and _operations implementation
-        # query = str(self.user.select().where(
-        #     Clause(self.user.name.upper() == 'NIKITA')
-        # ))
-        # expected = 'SELECT * FROM "users" WHERE upper("users"."name") = \'NIKITA\''
+        query = str(self.user.select().where(
+            Clause(self.user.name.upper() == 'NIKITA')
+        ))
+        expected = 'SELECT * FROM "users" WHERE upper("users"."name") = \'NIKITA\''
 
-        # self.assertEquals(query, expected)
+        self.assertEquals(query, expected)
 
         query = str(self.user.select().where(Expression('random() > 0.5')))
         expected = 'SELECT * FROM "users" WHERE random() > 0.5'

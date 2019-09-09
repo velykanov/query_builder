@@ -8,9 +8,7 @@ import json
 from .. import helpers
 
 
-# TODO: rewrite __r*__ methods
 # TODO: fix interaction with operations and functions
-# TODO: add instance additional initial variables support while creating new instance
 class Field:
     """
     General field class. Exists as an abstract
@@ -239,12 +237,13 @@ class Field:
             getattr(Field(None), func_name)(other)
 
         instance = self.__class__(name, **self.kwargs)
+        # TODO: test this behavior out (not sure if it's correct)
+        # instance._functions = self._functions
         instance._operations = [
             operand,
             need_parenthesis,
-            *[value, other_value][::-1 if inverse else 1],
+            *[str(value), other_value][::-1 if inverse else 1],
         ]
-        instance._functions = self._functions
 
         return instance
 

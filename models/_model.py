@@ -78,6 +78,14 @@ class Model:
                 )
             )
 
+        if 'join' in self._inner_state:
+            query_parts.append(
+                ' '.join(
+                    '{} {} ON {}'.format(*join_condition)
+                    for join_condition in self._inner_state['join']
+                )
+            )
+
         if 'where' in self._inner_state:
             query_parts.append(
                 'WHERE {clause}'.format(clause=self._inner_state['where'])
@@ -163,5 +171,40 @@ class Model:
             'alias': alias,
             'query': model,
         }
+
+        return self
+
+    def order(self, *fields):
+        if not all(isinstance(field, (Expression, Field)) for field in fields):
+            raise TypeError('fields must be either Expression or Field')
+
+        # TODO: add fields negation
+        self._inner_state['order'] = fields
+
+        return self
+
+    def group(self, *fields):
+        if not all(isinstance(field, Field) for field in fields):
+            raise TypeError('fields must be Field')
+
+        self._inner_state['group'] = fields
+
+        return self
+
+    def having(self, *fields):
+        if not all(isinstance(field, (Expression, Field)) for field in fields):
+            raise TypeError('fields must be either Expression or Field')
+
+        self._inner_state['having'] = fields
+
+        return self
+
+    def limit(self, limit):
+        self._inner_state['limit'] = limit
+
+        return self
+
+    def offset(self, offset):
+        self._inner_state['offset'] = offset
 
         return self

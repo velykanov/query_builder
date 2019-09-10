@@ -107,6 +107,9 @@ class Field:
         return self.__or__(other)
 
     def __lt__(self, other):
+        if 'count' in self._functions:
+            return self._general_operation(other, '<')
+
         raise TypeError(self._unsupported_operand.format(
             '<',
             type(self).__name__,
@@ -114,6 +117,9 @@ class Field:
         ))
 
     def __le__(self, other):
+        if 'count' in self._functions:
+            return self._general_operation(other, '<=')
+
         raise TypeError(self._unsupported_operand.format(
             '<=',
             type(self).__name__,
@@ -121,6 +127,9 @@ class Field:
         ))
 
     def __gt__(self, other):
+        if 'count' in self._functions:
+            return self._general_operation(other, '>')
+
         raise TypeError(self._unsupported_operand.format(
             '>',
             type(self).__name__,
@@ -128,6 +137,9 @@ class Field:
         ))
 
     def __ge__(self, other):
+        if 'count' in self._functions:
+            return self._general_operation(other, '>=')
+
         raise TypeError(self._unsupported_operand.format(
             '>=',
             type(self).__name__,
@@ -147,10 +159,10 @@ class Field:
         return self._general_operation(other, '=')
 
     def __neg__(self):
-        raise TypeError(self._unsupported_unary_operand.format(
-            '-',
-            type(self).__name__,
-        ))
+        return '-{}'.format(self)
+
+    def __pos__(self):
+        return '+{}'.format(self)
 
     def __bool__(self):
         raise TypeError(self._unsupported_unary_operand.format(
@@ -313,3 +325,8 @@ class Field:
         if self._constraints is not None:
             raise NotImplementedError('implement in child class')
 
+    def count(self):
+        return self._wrap_function('count')
+
+    def array_agg(self):
+        return self._wrap_function('array_agg')

@@ -5,18 +5,28 @@ from query_builder import fields
 from query_builder.expressions import Clause
 from query_builder.expressions import Expression
 from query_builder.models import Model
-
-
-class User(Model):
-    name = fields.Char('name', max_length=32)
-    age = fields.Integer('age')
+from query_builder.models import LEFT_JOIN
 
 
 class TestCase(unittest.TestCase):
+    """Tests model for building correct queries"""
 
     @classmethod
     def setUpClass(cls):
+        """Initiates user's models"""
+        class User(Model):
+            """User's model"""
+            id_ = fields.Integer('id')
+            name = fields.Char('name', max_length=32)
+            age = fields.Integer('age')
+
+        class UserPet(Model):
+            """User's pets model"""
+            name = fields.Char('name', max_length=32)
+            users_id = fields.Integer('users_id')
+
         cls.user = User('users')
+        cls.user_pet = UserPet('users_pets')
 
     def test_select(self):
         """Tests simple select cases"""
@@ -146,6 +156,102 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT * FROM "users" WHERE random() > 0.5'
 
         self.assertEquals(query, expected)
+
+    def test_select_pagination(self):
+        """Tests selects with LIMIT and OFFSET"""
+        query = str(self.user.select().limit(10))
+        expected = 'SELECT * FROM "users" LIMIT 10'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select().limit(10).offset(5))
+        expected = 'SELECT * FROM "users" LIMIT 10 OFFSET 5'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select().offset(5))
+        expected = 'SELECT * FROM "users" OFFSET 5'
+
+        self.assertEquals(query, expected)
+
+    def test_select_orderring(self):
+        """Tests selects with ORDER BY clauses"""
+        query = str(self.user.select().order(self.user.name))
+        expected = 'SELECT * FROM "users" ORDER BY "users"."name" ASC'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select().order(-self.user.name))
+        expected = 'SELECT * FROM "users" ORDER BY "users"."name" DESC'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select().order(self.user.name, -self.user.age))
+        expected = 'SELECT * FROM "users" ORDER BY "users"."name" ASC, "users"."age" DESC'
+
+        self.assertEquals(query, expected)
+
+    def test_select_grouping(self):
+        """Tests selects with GROUP BY and HAVING clauses"""
+        query = str(self.user.select(
+            self.user.name,
+            self.user.age.avg(),
+        ).group(
+            self.user.name,
+        ))
+        expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
+            'GROUP BY "users"."name"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select(
+            self.user.name,
+            self.user.age.array_agg(),
+        ).group(
+            self.user.name,
+        ))
+        expected = 'SELECT "users"."name", array_agg("users"."age") FROM "users" ' + \
+            'GROUP BY "users"."name"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select(
+            self.user.name,
+            self.user.age.avg(),
+        ).group(
+            self.user.name,
+        ).having(
+            self.user.name.count() > 1,
+        ))
+        expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
+            'GROUP BY "users"."name" HAVING count("users"."name") > 1'
+
+        self.assertEquals(query, expected)
+
+    def test_select_join(self):
+        """Tests selects with join clause"""
+        query = str(self.user.select().join(
+            model=self.user_pet,
+            condition=self.user.id_ == self.user_pet.users_id,
+            join_type=LEFT_JOIN,
+        ))
+        expected = 'SELECT * FROM "users" ' + \
+            'LEFT JOIN "users_pets" ON "users"."id" = "users_pets"."users_id"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.set_alias('u').select().join(
+            model=self.user_pet.set_alias('up'),
+            condition=self.user.id_ == self.user_pet.users_id,
+            join_type=LEFT_JOIN,
+        ))
+        expected = 'SELECT * FROM "users" AS "u" ' + \
+            'LEFT JOIN "users_pets" AS "up" ON "u"."id" = "up"."users_id"'
+
+        self.assertEquals(query, expected)
+
+        self.user.set_alias(None)
+        self.user_pet.set_alias(None)
 
     def test_insert(self):
         """Tests simple insertions"""

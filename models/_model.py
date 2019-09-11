@@ -47,15 +47,15 @@ class Model:
     def __str__(self):
         query_parts = []
 
-        if 'with' in self._inner_state:
-            # TODO: write tests on with cte
-            query_parts.append(
-                'WITH {alias} AS ({query})'.format(
-                    alias=self._inner_state['with']['alias'],
-                    query=self._inner_state['with']['query'],
-                )
-            )
-            self._inner_state['with']['query'].set_alias(self._inner_state['with']['alias'])
+        # if 'with' in self._inner_state:
+        #     # TODO: write tests on with cte
+        #     query_parts.append(
+        #         'WITH {alias} AS ({query})'.format(
+        #             alias=helpers.quote_literal(self._inner_state['with']['alias']),
+        #             query=self._inner_state['with']['query'],
+        #         )
+        #     )
+        #     self._inner_state['with']['query'].set_alias(self._inner_state['with']['alias'])
 
         if 'delete' in self._inner_state:
             query_parts.append(
@@ -217,13 +217,14 @@ class Model:
 
         return self
 
-    def with_cte(self, alias, model):
-        self._inner_state['with'] = {
-            'alias': alias,
-            'query': model,
-        }
+    # TODO: rethink WITH CTE implementation
+    # def with_cte(self, alias, model):
+    #     self._inner_state['with'] = {
+    #         'alias': alias,
+    #         'query': model,
+    #     }
 
-        return self
+    #     return self
 
     def order(self, *fields):
         self._inner_state['order'] = fields

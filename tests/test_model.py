@@ -263,3 +263,16 @@ class TestCase(unittest.TestCase):
             'VALUES (\'Nikita\', 23)'
 
         self.assertEquals(query, expected)
+
+        # TODO: implement INSERT SELECT operations
+        # query = str(self.user.insert(
+        #     (self.user.name, self.user.age),
+        #     self.user.select(
+        #         self.user.name,
+        #         self.user.age + 3,
+        #     ),
+        # ))
+        # expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
+        #     'SELECT "users"."name", "users"."age" + 3 FROM "users"'
+
+        # self.assertEquals(query, expected)

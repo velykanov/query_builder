@@ -7,10 +7,10 @@ from ..fields import Field
 
 
 class Model:
-    _inner_state = {}
     def __init__(self, name, alias=None):
         self._name = name
         self._alias = alias
+        self._inner_state = {}
 
         self._set_name()
 
@@ -47,15 +47,14 @@ class Model:
     def __str__(self):
         query_parts = []
 
-        # if 'with' in self._inner_state:
-        #     # TODO: write tests on with cte
-        #     query_parts.append(
-        #         'WITH {alias} AS ({query})'.format(
-        #             alias=helpers.quote_literal(self._inner_state['with']['alias']),
-        #             query=self._inner_state['with']['query'],
-        #         )
-        #     )
-        #     self._inner_state['with']['query'].set_alias(self._inner_state['with']['alias'])
+        if 'with' in self._inner_state:
+            query_parts.append(
+                'WITH {alias} AS ({query})'.format(
+                    alias=helpers.quote_literal(self._inner_state['with']['alias']),
+                    query=self._inner_state['with']['query'],
+                )
+            )
+            self._inner_state['with']['query'].set_alias(self._inner_state['with']['alias'])
 
         if 'delete' in self._inner_state:
             query_parts.append(
@@ -84,7 +83,7 @@ class Model:
                 query_parts.append(
                     'INSERT INTO {table} ({fields}) {query}'.format(
                         table=self._get_name(),
-                        fields=self._inner_state['insert']['fields'],
+                        fields=', '.join(map(str, self._inner_state['insert']['fields'])),
                         query=select,
                     )
                 )
@@ -96,8 +95,19 @@ class Model:
                 )
             )
         elif 'select' in self._inner_state:
+            distinct = self._inner_state.pop('distinct', None)
+
+            select = 'SELECT'
+            if distinct is not None:
+                on = distinct.get('on')
+                if on is not None:
+                    select = 'SELECT DISTINCT ON ({})'.format(', '.join(map(str, on)))
+                else:
+                    select = 'SELECT DISTINCT'
+
             query_parts.append(
-                'SELECT {fields} FROM {table}'.format(
+                '{select} {fields} FROM {table}'.format(
+                    select=select,
                     fields=', '.join(map(str, self._inner_state['select'])),
                     table=self._get_name(),
                 )
@@ -164,11 +174,21 @@ class Model:
         if not all(isinstance(field, Field) for field in fields):
             raise TypeError('fields must be Field')
 
-        self._inner_state['insert'] = {
-            'fields': fields,
-            'values': values,
-            'operations': operations,
-        }
+        if isinstance(values, self.__class__):
+            inner_state = self._inner_state
+            inner_state['select'] = str(values)
+            self._inner_state = inner_state
+            self._inner_state['insert'] = {
+                'fields': fields,
+                'operations': operations,
+            }
+
+        else:
+            self._inner_state['insert'] = {
+                'fields': fields,
+                'values': values,
+                'operations': operations,
+            }
 
         return self
 
@@ -218,13 +238,13 @@ class Model:
         return self
 
     # TODO: rethink WITH CTE implementation
-    # def with_cte(self, alias, model):
-    #     self._inner_state['with'] = {
-    #         'alias': alias,
-    #         'query': model,
-    #     }
+    def with_cte(self, alias, model):
+        self._inner_state['with'] = {
+            'alias': alias,
+            'query': model,
+        }
 
-    #     return self
+        return self
 
     def order(self, *fields):
         self._inner_state['order'] = fields
@@ -257,8 +277,23 @@ class Model:
 
         return self
 
+    def distinct(self, *fields):
+        self._inner_state['distinct'] = {
+            'distinct': True,
+        }
+
+        if fields:
+            self._inner_state['distinct'].update({'on': fields})
+
+        return self
+
     def set_alias(self, alias):
         self._alias = alias
         self._set_name()
+
+        return self
+
+    def reset_aliases(self):
+        self.set_alias(None)
 
         return self

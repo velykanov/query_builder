@@ -69,6 +69,18 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
+    def test_select_distinct(self):
+        """Tests unique tuples selection"""
+        query = str(self.user.select().distinct())
+        expected = 'SELECT DISTINCT * FROM "users"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select().distinct(self.user.name))
+        expected = 'SELECT DISTINCT ON ("users"."name") * FROM "users"'
+
+        self.assertEquals(query, expected)
+
     def test_select_functions(self):
         """Tests selections with functions applied to fields"""
         query = str(self.user.select(self.user.name.upper()))
@@ -250,8 +262,30 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
-        self.user.set_alias(None)
-        self.user_pet.set_alias(None)
+        self.user.reset_aliases()
+        self.user_pet.reset_aliases()
+
+    def test_select_with_cte(self):
+        """Tests selecting with WITH CTE"""
+        query = str(self.user.with_cte(
+            'pets',
+            self.user_pet.select(
+                self.user_pet.users_id,
+            ),
+        ).select(
+            self.user.name,
+        ).set_alias('u').where(
+            Clause(self.user.id_ == self.user_pet.users_id)
+        ))
+        expected = 'WITH "pets" AS ' + \
+            '(SELECT "users_pets"."users_id" FROM "users_pets") ' + \
+            'SELECT "u"."name" FROM "users" AS "u" WHERE "u"."id" = "pets"."users_id"'
+
+        # TODO: aliasing in where clause WHERE "u"."id" = "pets"."users_id" AS "master_id"
+        self.assertEquals(query, expected)
+
+        self.user.reset_aliases()
+        self.user_pet.reset_aliases()
 
     def test_insert(self):
         """Tests simple insertions"""
@@ -265,14 +299,14 @@ class TestCase(unittest.TestCase):
         self.assertEquals(query, expected)
 
         # TODO: implement INSERT SELECT operations
-        # query = str(self.user.insert(
-        #     (self.user.name, self.user.age),
-        #     self.user.select(
-        #         self.user.name,
-        #         self.user.age + 3,
-        #     ),
-        # ))
-        # expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
-        #     'SELECT "users"."name", "users"."age" + 3 FROM "users"'
+        query = str(self.user.insert(
+            (self.user.name, self.user.age),
+            self.user.select(
+                self.user.name,
+                self.user.age + 3,
+            ),
+        ))
+        expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
+            'SELECT "users"."name", "users"."age" + 3 FROM "users"'
 
-        # self.assertEquals(query, expected)
+        self.assertEquals(query, expected)

@@ -226,7 +226,7 @@ class Field:
     def _general_operation(self, other, operand, need_parenthesis=False, inverse=False):
         name = None
         other_value = None
-        value = self
+        value = str(self)
         if self._operations is not None:
             value = self._operations
 
@@ -254,7 +254,7 @@ class Field:
         instance._operations = [
             operand,
             need_parenthesis,
-            *[str(value), other_value][::-1 if inverse else 1],
+            *[value, other_value][::-1 if inverse else 1],
         ]
 
         return instance

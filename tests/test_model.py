@@ -18,6 +18,7 @@ class TestCase(unittest.TestCase):
             """User's model"""
             id_ = fields.Integer('id')
             name = fields.Char('name', max_length=32)
+            surname = fields.Char('surname', max_length=32)
             age = fields.Integer('age')
 
         class UserPet(Model):
@@ -66,6 +67,18 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT ' + \
             '\'hello WORLD! \' || "users"."name" AS "new_name", ' + \
             '7 - "users"."age" AS "new_age" FROM "users"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select(
+            self.user.name + ' ' + self.user.surname,
+        ))
+        expected = 'SELECT "users"."name" || \' \' || "users"."surname" FROM "users"'
+
+        self.assertEquals(query, expected)
+
+        query = str(self.user.select(self.user.age * 2 * 3 / 2))
+        expected = 'SELECT (("users"."age" * 2) * 3) / 2 FROM "users"'
 
         self.assertEquals(query, expected)
 

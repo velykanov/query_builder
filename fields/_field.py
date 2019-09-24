@@ -9,6 +9,7 @@ from .. import helpers
 
 
 # TODO: fix interaction with operations and functions
+# TODO: add schema support
 class Field:
     """
     General field class. Exists as an abstract
@@ -330,3 +331,9 @@ class Field:
 
     def array_agg(self):
         return self._wrap_function('array_agg')
+
+    def as_alias(self):
+        if self._alias:
+            return self._alias
+
+        return str(self)

@@ -94,6 +94,11 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
+        query = str(self.user.select(self.user.age).distinct(self.user.name))
+        expected = 'SELECT DISTINCT ON ("users"."name") "users"."age" FROM "users"'
+
+        self.assertEquals(query, expected)
+
     def test_select_functions(self):
         """Tests selections with functions applied to fields"""
         query = str(self.user.select(self.user.name.upper()))
@@ -216,6 +221,16 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
+        query = str(self.user.select(
+            self.user.name.set_alias('__n'),
+        ).order(self.user.name))
+        expected = 'SELECT "users"."name" AS "__n" FROM "users" ORDER BY "__n" ASC'
+
+        self.assertEquals(query, expected)
+
+        # TODO: move this to reset_aliases
+        self.user.name.set_alias(None)
+
     def test_select_grouping(self):
         """Tests selects with GROUP BY and HAVING clauses"""
         query = str(self.user.select(
@@ -275,8 +290,8 @@ class TestCase(unittest.TestCase):
 
         self.assertEquals(query, expected)
 
-        self.user.reset_aliases()
-        self.user_pet.reset_aliases()
+        self.user.reset_alias()
+        self.user_pet.reset_alias()
 
     def test_select_with_cte(self):
         """Tests selecting with WITH CTE"""
@@ -297,8 +312,8 @@ class TestCase(unittest.TestCase):
         # TODO: aliasing in where clause WHERE "u"."id" = "pets"."users_id" AS "master_id"
         self.assertEquals(query, expected)
 
-        self.user.reset_aliases()
-        self.user_pet.reset_aliases()
+        self.user.reset_alias()
+        self.user_pet.reset_alias()
 
     def test_insert(self):
         """Tests simple insertions"""

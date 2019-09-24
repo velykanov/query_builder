@@ -374,7 +374,7 @@ class BigInt(Decimal):
     _max_scale = 0
 
     def __init__(self, name, alias=None, table=None, quote=True, **kwargs):
-        super(BigInt, self).__init__(name, alias, table, quote)
+        super(BigInt, self).__init__(name, alias, table, quote, **kwargs)
 
     def __lshift__(self, value):
         return self._general_operation(value, '<<', True)

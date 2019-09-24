@@ -141,7 +141,7 @@ class Model:  # pylint: disable=too-many-public-methods
         if 'order' in self._inner_state:
             query_parts.append(
                 'ORDER BY {}'.format(
-                    ', '.join(map(Model._apply_orderring, self._inner_state['order']))
+                    ', '.join(map(Model._apply_ordering, self._inner_state['order']))
                 )
             )
 
@@ -157,7 +157,7 @@ class Model:  # pylint: disable=too-many-public-methods
         return ' '.join(query_parts)
 
     @staticmethod
-    def _apply_orderring(field):
+    def _apply_ordering(field):
         if isinstance(field, Field):
             field = field.as_alias()
 

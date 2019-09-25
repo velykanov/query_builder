@@ -34,12 +34,12 @@ class TestCase(unittest.TestCase):
         query = str(self.user.select())
         expected = 'SELECT * FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(self.user.name, self.user.age))
         expected = 'SELECT "users"."name", "users"."age" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name + ' hello WORLD!',
@@ -48,7 +48,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT ' + \
             '"users"."name" || \' hello WORLD!\', "users"."age" - 7 FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             (self.user.name + ' hello WORLD!').set_alias('new_name'),
@@ -58,7 +58,7 @@ class TestCase(unittest.TestCase):
             '"users"."name" || \' hello WORLD!\' AS "new_name", ' + \
             '"users"."age" - 7 AS "new_age" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             ('hello WORLD! ' + self.user.name).set_alias('new_name'),
@@ -68,50 +68,50 @@ class TestCase(unittest.TestCase):
             '\'hello WORLD! \' || "users"."name" AS "new_name", ' + \
             '7 - "users"."age" AS "new_age" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name + ' ' + self.user.surname,
         ))
         expected = 'SELECT "users"."name" || \' \' || "users"."surname" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(self.user.age * 2 * 3 / 2))
         expected = 'SELECT (("users"."age" * 2) * 3) / 2 FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_distinct(self):
         """Tests unique tuples selection"""
         query = str(self.user.select().distinct())
         expected = 'SELECT DISTINCT * FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().distinct(self.user.name))
         expected = 'SELECT DISTINCT ON ("users"."name") * FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(self.user.age).distinct(self.user.name))
         expected = 'SELECT DISTINCT ON ("users"."name") "users"."age" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_functions(self):
         """Tests selections with functions applied to fields"""
         query = str(self.user.select(self.user.name.upper()))
         expected = 'SELECT upper("users"."name") FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name.upper().set_alias('upper_name'),
         ))
         expected = 'SELECT upper("users"."name") AS "upper_name" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             ('prefix_' + self.user.name).upper().set_alias('upper_name'),
@@ -119,14 +119,14 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT ' + \
             'upper(\'prefix_\' || "users"."name") AS "upper_name" FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_raw_sql(self):
         """Tests raw SQL expressions"""
         query = str(Expression("SELECT * FROM users"))
         expected = "SELECT * FROM users"
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_where(self):
         """Tests selects with WHERE clauses"""
@@ -135,7 +135,7 @@ class TestCase(unittest.TestCase):
         ))
         expected = 'SELECT * FROM "users" WHERE "users"."name" = \'O\'\'Reilly\''
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(
             Clause(self.user.name == "O'Reilly") | Clause(self.user.age >= 18)
@@ -143,7 +143,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT * FROM "users" ' + \
             'WHERE ("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18)'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(
             Clause(self.user.name == "O'Reilly")
@@ -153,7 +153,7 @@ class TestCase(unittest.TestCase):
             'WHERE ("users"."name" = \'O\'\'Reilly\' OR ' + \
             '"users"."age" >= 18 AND "users"."name" = \'Nikita\')'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(
             (Clause(self.user.name == "O'Reilly") | Clause(self.user.age >= 18))
@@ -163,7 +163,7 @@ class TestCase(unittest.TestCase):
             'WHERE ("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18) ' + \
             'AND "users"."name" = \'Nikita\''
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(
             (Clause(self.user.name == "O'Reilly") | Clause(self.user.age >= 18))
@@ -173,60 +173,60 @@ class TestCase(unittest.TestCase):
             'WHERE (("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18) ' + \
             'AND "users"."name" = \'Nikita\' OR true)'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(
             Clause(self.user.name.upper() == 'NIKITA')
         ))
         expected = 'SELECT * FROM "users" WHERE upper("users"."name") = \'NIKITA\''
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().where(Expression('random() > 0.5')))
         expected = 'SELECT * FROM "users" WHERE random() > 0.5'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_pagination(self):
         """Tests selects with LIMIT and OFFSET"""
         query = str(self.user.select().limit(10))
         expected = 'SELECT * FROM "users" LIMIT 10'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().limit(10).offset(5))
         expected = 'SELECT * FROM "users" LIMIT 10 OFFSET 5'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().offset(5))
         expected = 'SELECT * FROM "users" OFFSET 5'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_orderring(self):
         """Tests selects with ORDER BY clauses"""
         query = str(self.user.select().order(self.user.name))
         expected = 'SELECT * FROM "users" ORDER BY "users"."name" ASC'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().order(-self.user.name))
         expected = 'SELECT * FROM "users" ORDER BY "users"."name" DESC'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select().order(self.user.name, -self.user.age))
         expected = 'SELECT * FROM "users" ORDER BY "users"."name" ASC, "users"."age" DESC'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name.set_alias('__n'),
         ).order(self.user.name))
         expected = 'SELECT "users"."name" AS "__n" FROM "users" ORDER BY "__n" ASC'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         # TODO: move this to reset_aliases
         self.user.name.set_alias(None)
@@ -242,7 +242,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
             'GROUP BY "users"."name"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name,
@@ -253,7 +253,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT "users"."name", array_agg("users"."age") FROM "users" ' + \
             'GROUP BY "users"."name"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name,
@@ -266,7 +266,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
             'GROUP BY "users"."name" HAVING count("users"."name") > 1'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
     def test_select_join(self):
         """Tests selects with join clause"""
@@ -278,7 +278,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT * FROM "users" ' + \
             'LEFT JOIN "users_pets" ON "users"."id" = "users_pets"."users_id"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         query = str(self.user.set_alias('u').select().join(
             model=self.user_pet.set_alias('up'),
@@ -288,7 +288,7 @@ class TestCase(unittest.TestCase):
         expected = 'SELECT * FROM "users" AS "u" ' + \
             'LEFT JOIN "users_pets" AS "up" ON "u"."id" = "up"."users_id"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         self.user.reset_alias()
         self.user_pet.reset_alias()
@@ -310,7 +310,7 @@ class TestCase(unittest.TestCase):
             'SELECT "u"."name" FROM "users" AS "u" WHERE "u"."id" = "pets"."users_id"'
 
         # TODO: aliasing in where clause WHERE "u"."id" = "pets"."users_id" AS "master_id"
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
         self.user.reset_alias()
         self.user_pet.reset_alias()
@@ -324,9 +324,8 @@ class TestCase(unittest.TestCase):
         expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
             'VALUES (\'Nikita\', 23)'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)
 
-        # TODO: implement INSERT SELECT operations
         query = str(self.user.insert(
             (self.user.name, self.user.age),
             self.user.select(
@@ -337,4 +336,4 @@ class TestCase(unittest.TestCase):
         expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
             'SELECT "users"."name", "users"."age" + 3 FROM "users"'
 
-        self.assertEquals(query, expected)
+        self.assertEqual(query, expected)

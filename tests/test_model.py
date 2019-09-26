@@ -1,11 +1,11 @@
 """Model test module"""
 import unittest
 
-from query_builder import fields
-from query_builder.expressions import Clause
-from query_builder.expressions import Expression
-from query_builder.models import Model
-from query_builder.models import LEFT_JOIN
+from .. import fields
+from ..expressions import Clause
+from ..expressions import Expression
+from ..models import Model
+from ..models import LEFT_JOIN
 
 
 class TestCase(unittest.TestCase):

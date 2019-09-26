@@ -207,14 +207,18 @@ class Field:
             value = self
 
         name = value.name
-        if value._table is not None:
-            name = '{}.{}'.format(value._table, value.name)
+        if getattr(value, '_table') is not None:
+            name = '{}.{}'.format(getattr(value, '_table'), value.name)
 
-        if value._functions is not None:
-            name = value._unwrap_functions(value._functions)
+        if getattr(value, '_functions') is not None:
+            name = getattr(
+                value,
+                '_unwrap_functions',
+                self._unwrap_functions,
+            )(getattr(value, '_functions'))
 
-        if value._alias is not None:
-            return '{} AS {}'.format(name, value._alias)
+        if getattr(value, '_alias') is not None:
+            return '{} AS {}'.format(name, getattr(value, '_alias'))
 
         return name
 
@@ -223,6 +227,10 @@ class Field:
             return self._format_field()
 
         return self.__operation_actions(self._operations)
+
+    def _check_constraints(self, _):
+        if self._constraints is not None:
+            raise NotImplementedError('implement in child class')
 
     def _general_operation(self, other, operand, need_parenthesis=False, inverse=False):
         name = None
@@ -234,8 +242,8 @@ class Field:
         if isinstance(other, Field):
             name = '_'.join((self.name, other.name))
             other_value = other
-            if other._operations is not None:
-                other_value = other._operations
+            if getattr(other, '_operations') is not None:
+                other_value = getattr(other, '_operations')
         elif isinstance(other, (list, tuple, set, dict, bool)):
             name = self.name
             other_value = helpers.quote_ident(json.dumps(other))
@@ -247,7 +255,7 @@ class Field:
             other_value = helpers.quote_ident(other)
         else:
             func_name = str(inspect.stack()[1].function)
-            getattr(Field(None), func_name)(other)
+            getattr(Field(...), func_name)(other)
 
         instance = self.__class__(name, **self.kwargs)
         # TODO: test this behavior out (not sure if it's correct)
@@ -268,18 +276,15 @@ class Field:
             False,
             **self.kwargs,
         )
-        instance._operations = self._operations
+        setattr(instance, '_operations', self._operations)
         self._alias = None
 
-        if self._functions is None:
-            instance._functions = {
-                func_name: (*args, self) if inverse else (self, *args),
-            }
-        else:
-            functions = copy.deepcopy(self._functions)
-            instance._functions = {
-                func_name: (*args, functions) if inverse else (functions, *args),
-            }
+        functions = copy.deepcopy(self._functions) or self
+        setattr(
+            instance,
+            '_functions',
+            {func_name: (*args, functions) if inverse else (functions, *args)}
+        )
 
         return instance
 
@@ -298,14 +303,43 @@ class Field:
         )
 
     def set_alias(self, alias):
+        """
+        Sets alias on field
+
+        Args:
+            alias (str): Alias name (**required**)
+
+        Returns:
+            Field: Same object with changed inner state
+        """
         self._alias = helpers.quote_literal(alias)
 
         return self
 
     def set_table_prefix(self, table):
+        """
+        Sets table extension
+
+        Args:
+            table (str): Table name (**required**)
+
+        Returns:
+            Field: Same object with changed inner state
+        """
         self._table = helpers.quote_literal(table)
 
+        return self
+
     def cast(self, as_type):
+        """
+        Casts field ad specified type
+
+        Args:
+            as_type (str): Type to cast field as (**required**)
+
+        Returns:
+            Field: Object with changed inner state
+        """
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
@@ -322,17 +356,31 @@ class Field:
 
         return self
 
-    def _check_constraints(self, value):
-        if self._constraints is not None:
-            raise NotImplementedError('implement in child class')
-
     def count(self):
+        """
+        Wraps field in COUNT function
+
+        Returns:
+            Field: Object with changed inner state
+        """
         return self._wrap_function('count')
 
     def array_agg(self):
+        """
+        Wraps field in ARRAY_AGG function
+
+        Returns:
+            Field: Object with changed inner state
+        """
         return self._wrap_function('array_agg')
 
     def as_alias(self):
+        """
+        Gets field name or field's alias
+
+        Returns:
+            str: Field's alias or name
+        """
         if self._alias:
             return self._alias
 

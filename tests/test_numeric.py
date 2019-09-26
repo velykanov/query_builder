@@ -1,7 +1,7 @@
 """Numeric field test module"""
 import unittest
 
-from query_builder import fields
+from .. import fields
 
 
 class TestCase(unittest.TestCase):

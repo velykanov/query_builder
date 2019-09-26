@@ -15,11 +15,10 @@ class Clause:
         self._field = field
 
     def __join(self, other, operand='AND'):
-        value = None
         if isinstance(other, bool):
             value = json.dumps(other)
         elif isinstance(other, self.__class__):
-            value = other._field
+            value = getattr(other, '_field')
         else:
             raise TypeError(
                 "unsupported operand type(s) for and: '{}' and '{}'".format(
@@ -28,7 +27,6 @@ class Clause:
                 ),
             )
 
-        expression = None
         if operand == 'AND':
             expression = '{} AND {}'.format(self._field, value)
         else:

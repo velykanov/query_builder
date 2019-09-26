@@ -2,6 +2,9 @@
 from ._field import Field
 
 
+POSSIBLE_PRECISION = [0, 1, 2, 3, 4, 5, 6]
+
+
 class Date(Field):
     _type = 'date'
 
@@ -14,7 +17,7 @@ class Time(Field):
             self._type = 'timetz'
 
         if precision is not None:
-            if precision not in range(7):
+            if precision not in POSSIBLE_PRECISION:
                 raise ValueError('precision must be in [0, 6]')
 
             self.precision = precision
@@ -37,7 +40,7 @@ class Timestamp(Field):
             self._type = 'timestamptz'
 
         if precision is not None:
-            if precision not in range(7):
+            if precision not in POSSIBLE_PRECISION:
                 raise ValueError('precision must be in [0, 6]')
 
             self.precision = precision

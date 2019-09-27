@@ -336,7 +336,7 @@ class Model:  # pylint: disable=too-many-public-methods
             self._inner_state['join'] = []
 
         self._inner_state['join'].append(
-            (join_type, getattr(model, '_get_name')(), condition),
+            (join_type, getattr(model, '_get_name', str)(), condition),
         )
 
         return self

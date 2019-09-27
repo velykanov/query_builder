@@ -28,7 +28,7 @@ class Field:
     _unsupported_operand = "unsupported operand type(s) for {}: '{}' and '{}'"
     _unsupported_unary_operand = "bad operand type for unary {}: '{}'"
 
-    _constraints = None
+    _has_constraints = False
     _functions = None
     _operations = None
 
@@ -108,44 +108,16 @@ class Field:
         return self.__or__(other)
 
     def __lt__(self, other):
-        if 'count' in self._functions:
-            return self._general_operation(other, '<')
-
-        raise TypeError(self._unsupported_operand.format(
-            '<',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self._general_operation(other, '<')
 
     def __le__(self, other):
-        if 'count' in self._functions:
-            return self._general_operation(other, '<=')
-
-        raise TypeError(self._unsupported_operand.format(
-            '<=',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self._general_operation(other, '<=')
 
     def __gt__(self, other):
-        if 'count' in self._functions:
-            return self._general_operation(other, '>')
-
-        raise TypeError(self._unsupported_operand.format(
-            '>',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self._general_operation(other, '>')
 
     def __ge__(self, other):
-        if 'count' in self._functions:
-            return self._general_operation(other, '>=')
-
-        raise TypeError(self._unsupported_operand.format(
-            '>=',
-            type(self).__name__,
-            type(other).__name__,
-        ))
+        return self._general_operation(other, '>=')
 
     def __ne__(self, other):
         raise TypeError(self._unsupported_operand.format(
@@ -158,6 +130,9 @@ class Field:
         self._check_constraints(other)
 
         return self._general_operation(other, '=')
+
+    def __hash__(self):
+        return hash((self.name, self._alias, self._table))
 
     def __neg__(self):
         return '-{}'.format(self)
@@ -207,17 +182,17 @@ class Field:
             value = self
 
         name = value.name
-        if getattr(value, '_table') is not None:
+        if getattr(value, '_table', None) is not None:
             name = '{}.{}'.format(getattr(value, '_table'), value.name)
 
-        if getattr(value, '_functions') is not None:
+        if getattr(value, '_functions', None) is not None:
             name = getattr(
                 value,
                 '_unwrap_functions',
                 self._unwrap_functions,
             )(getattr(value, '_functions'))
 
-        if getattr(value, '_alias') is not None:
+        if getattr(value, '_alias', None) is not None:
             return '{} AS {}'.format(name, getattr(value, '_alias'))
 
         return name
@@ -229,10 +204,12 @@ class Field:
         return self.__operation_actions(self._operations)
 
     def _check_constraints(self, _):
-        if self._constraints is not None:
+        if self._has_constraints:
             raise NotImplementedError('implement in child class')
 
-    def _general_operation(self, other, operand, need_parenthesis=False, inverse=False):
+    def _general_operation(
+            self, other, operand, need_parenthesis=False, inverse=False,
+    ):
         name = None
         other_value = None
         value = str(self)
@@ -260,11 +237,15 @@ class Field:
         instance = self.__class__(name, **self.kwargs)
         # TODO: test this behavior out (not sure if it's correct)
         # instance._functions = self._functions
-        instance._operations = [
-            operand,
-            need_parenthesis,
-            *[value, other_value][::-1 if inverse else 1],
-        ]
+        setattr(
+            instance,
+            '_operations',
+            [
+                operand,
+                need_parenthesis,
+                *[value, other_value][::-1 if inverse else 1],
+            ],
+        )
 
         return instance
 

@@ -1,4 +1,6 @@
 """Numeric fields module"""
+import decimal
+
 from ._field import Field
 
 
@@ -23,6 +25,12 @@ class Decimal(Field):
     _max_scale = 16383
 
     def __init__(self, name, alias=None, table=None, quote=True, precision=None, scale=None):
+        self._max = float('{}.{}'.format(
+            '9' * self._max_magnitude,
+            '9' * self._max_scale,
+        )) if getattr(self, '_max', None) is None else self._max
+        self._min = -self._max if getattr(self, '_min', None) is None else self._min
+
         if precision is not None and self._max_scale + self._max_magnitude < precision:
             raise ValueError('Precision is bigger than allowed')
         self.precision = precision
@@ -89,6 +97,26 @@ class Decimal(Field):
 
     def __abs__(self):
         return self._wrap_function('abs')
+
+    def _check_constraints(self, value):
+        if isinstance(value, Field):
+            return True
+
+        if isinstance(value, (float, decimal.Decimal)):
+            if not self._min <= value <= self._max:
+                raise ValueError('value does not conform constraints')
+            value = str(value)
+
+        magnitude, *scale = map(len, value.split('.', 1))
+        if scale:
+            scale = scale[0]
+        else:
+            scale = 0
+
+        if magnitude > self._max_magnitude or scale > self._max_scale:
+            raise ValueError('value does not conform constraints')
+
+        return True
 
     def max(self):
         """

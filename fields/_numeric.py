@@ -12,8 +12,6 @@ class Decimal(Field):
         name (str): Field name (**required**)
         alias (str): Field's alias (``None`` - default)
         table (str): Table name of the field (``None`` - default)
-        quote (bool): Defines whether name, alias and table must be quoted or not
-            (``True`` - default)
         precision (int): Field's precision (``None`` - default)
         scale (int): Field's scale (``None`` - default)
 
@@ -24,7 +22,7 @@ class Decimal(Field):
     _max_magnitude = 131072
     _max_scale = 16383
 
-    def __init__(self, name, alias=None, table=None, quote=True, precision=None, scale=None):
+    def __init__(self, name, alias=None, table=None, precision=None, scale=None):
         self._max = float('{}.{}'.format(
             '9' * self._max_magnitude,
             '9' * self._max_scale,
@@ -42,7 +40,6 @@ class Decimal(Field):
             name,
             alias,
             table,
-            quote,
             precision=precision,
             scale=scale,
         )
@@ -401,8 +398,8 @@ class BigInt(Decimal):
     _max_magnitude = 19
     _max_scale = 0
 
-    def __init__(self, name, alias=None, table=None, quote=True, **kwargs):
-        super(BigInt, self).__init__(name, alias, table, quote, **kwargs)
+    def __init__(self, name, alias=None, table=None, **kwargs):
+        super(BigInt, self).__init__(name, alias, table, **kwargs)
 
     def __lshift__(self, value):
         return self._general_operation(value, '<<', True)

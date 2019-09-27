@@ -87,7 +87,10 @@ class Model:  # pylint: disable=too-many-public-methods
             query_parts.append(
                 'UPDATE {table} SET {pairs}'.format(
                     table=self._get_name(),
-                    pairs=', '.join(map(str, self._inner_state['update'])),
+                    pairs=', '.join(map(
+                        str,
+                        self._inner_state['update']['fields'],
+                    )),
                 )
             )
         elif 'select' in self._inner_state:
@@ -141,7 +144,10 @@ class Model:  # pylint: disable=too-many-public-methods
         if 'order' in self._inner_state:
             query_parts.append(
                 'ORDER BY {}'.format(
-                    ', '.join(map(Model._apply_ordering, self._inner_state['order']))
+                    ', '.join(map(
+                        Model._apply_ordering,
+                        self._inner_state['order'],
+                    ))
                 )
             )
 
@@ -212,8 +218,8 @@ class Model:  # pylint: disable=too-many-public-methods
         state
 
         Args:
-            fields (list): List of Field instances (**required**)
-            values (list): List of values to insert (**required**)
+            fields (list|tuple): List of Field instances (**required**)
+            values (list|tuple|Model): Values to insert (**required**)
             operations (list): List of respective operations to apply (``None`` - default)
 
         Returns:
@@ -264,7 +270,7 @@ class Model:  # pylint: disable=too-many-public-methods
         if not all(isinstance(field, Field) for field in update_fields):
             raise TypeError('fields must be Field instances')
 
-        self._inner_state['update'] = {'fields': fields}
+        self._inner_state['update'] = {'fields': update_fields}
         if from_model is not None:
             self._inner_state['update']['from'] = from_model
 

@@ -18,8 +18,6 @@ class Field:
         name (str): Column name in DB (**required**)
         alias (str): Alias for column (``None`` - default)
         table (str): Table name for prefixing (``None`` - default)
-        quote (bool): Defines whether quote name, alias and table or not
-            (``True`` - default)
 
     Raises:
         TypeError: in case operation is not allowed
@@ -32,15 +30,10 @@ class Field:
     _functions = None
     _operations = None
 
-    def __init__(self, name, alias=None, table=None, quote=True, **kwargs):
-        if quote:
-            self.name = helpers.quote_literal(name)
-            self._alias = helpers.quote_literal(alias)
-            self._table = helpers.quote_literal(table)
-        else:
-            self.name = name
-            self._alias = alias
-            self._table = table
+    def __init__(self, name, alias=None, table=None, **kwargs):
+        self.name = name
+        self._alias = alias
+        self._table = table
 
         self.kwargs = kwargs
 
@@ -181,9 +174,12 @@ class Field:
         if value is None:
             value = self
 
-        name = value.name
+        name = helpers.quote_literal(value.name)
         if getattr(value, '_table', None) is not None:
-            name = '{}.{}'.format(getattr(value, '_table'), value.name)
+            name = '{}.{}'.format(
+                helpers.quote_literal(getattr(value, '_table')),
+                name,
+            )
 
         if getattr(value, '_functions', None) is not None:
             name = getattr(
@@ -193,7 +189,10 @@ class Field:
             )(getattr(value, '_functions'))
 
         if getattr(value, '_alias', None) is not None:
-            return '{} AS {}'.format(name, getattr(value, '_alias'))
+            return '{} AS {}'.format(
+                name,
+                getattr(value, '_alias'),
+            )
 
         return name
 
@@ -250,13 +249,7 @@ class Field:
         return instance
 
     def _wrap_function(self, func_name, *args, inverse=False):
-        instance = self.__class__(
-            self.name,
-            self._alias,
-            self._table,
-            False,
-            **self.kwargs,
-        )
+        instance = self.__class__(self.name, self._alias, self._table, **self.kwargs)
         setattr(instance, '_operations', self._operations)
         self._alias = None
 
@@ -307,7 +300,7 @@ class Field:
         Returns:
             Field: Same object with changed inner state
         """
-        self._table = helpers.quote_literal(table)
+        self._table = table
 
         return self
 
@@ -324,13 +317,7 @@ class Field:
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
-            return self.__class__(
-                operation,
-                self._alias,
-                self._table,
-                False,
-                **self.kwargs,
-            )
+            return self.__class__(operation, self._alias, self._table, **self.kwargs)
 
         # TODO: the worst implementation ever
         self._operations[2] = operation

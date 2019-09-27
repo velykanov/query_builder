@@ -44,9 +44,9 @@ class TestCase(unittest.TestCase):
         query = str(self.user.select(
             self.user.name + ' hello WORLD!',
             self.user.age - 7,
-        ))
+            ))
         expected = 'SELECT ' + \
-            '"users"."name" || \' hello WORLD!\', "users"."age" - 7 FROM "users"'
+                   '"users"."name" || \' hello WORLD!\', "users"."age" - 7 FROM "users"'
 
         self.assertEqual(query, expected)
 
@@ -55,8 +55,8 @@ class TestCase(unittest.TestCase):
             (self.user.age - 7).set_alias('new_age'),
         ))
         expected = 'SELECT ' + \
-            '"users"."name" || \' hello WORLD!\' AS "new_name", ' + \
-            '"users"."age" - 7 AS "new_age" FROM "users"'
+                   '"users"."name" || \' hello WORLD!\' AS "new_name", ' + \
+                   '"users"."age" - 7 AS "new_age" FROM "users"'
 
         self.assertEqual(query, expected)
 
@@ -65,14 +65,14 @@ class TestCase(unittest.TestCase):
             (7 - self.user.age).set_alias('new_age'),
         ))
         expected = 'SELECT ' + \
-            '\'hello WORLD! \' || "users"."name" AS "new_name", ' + \
-            '7 - "users"."age" AS "new_age" FROM "users"'
+                   '\'hello WORLD! \' || "users"."name" AS "new_name", ' + \
+                   '7 - "users"."age" AS "new_age" FROM "users"'
 
         self.assertEqual(query, expected)
 
         query = str(self.user.select(
             self.user.name + ' ' + self.user.surname,
-        ))
+            ))
         expected = 'SELECT "users"."name" || \' \' || "users"."surname" FROM "users"'
 
         self.assertEqual(query, expected)
@@ -117,7 +117,7 @@ class TestCase(unittest.TestCase):
             ('prefix_' + self.user.name).upper().set_alias('upper_name'),
         ))
         expected = 'SELECT ' + \
-            'upper(\'prefix_\' || "users"."name") AS "upper_name" FROM "users"'
+                   'upper(\'prefix_\' || "users"."name") AS "upper_name" FROM "users"'
 
         self.assertEqual(query, expected)
 
@@ -141,7 +141,7 @@ class TestCase(unittest.TestCase):
             Clause(self.user.name == "O'Reilly") | Clause(self.user.age >= 18)
         ))
         expected = 'SELECT * FROM "users" ' + \
-            'WHERE ("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18)'
+                   'WHERE ("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18)'
 
         self.assertEqual(query, expected)
 
@@ -150,18 +150,8 @@ class TestCase(unittest.TestCase):
             | Clause(self.user.age >= 18) & Clause(self.user.name == 'Nikita')
         ))
         expected = 'SELECT * FROM "users" ' + \
-            'WHERE ("users"."name" = \'O\'\'Reilly\' OR ' + \
-            '"users"."age" >= 18 AND "users"."name" = \'Nikita\')'
-
-        self.assertEqual(query, expected)
-
-        query = str(self.user.select().where(
-            (Clause(self.user.name == "O'Reilly") | Clause(self.user.age >= 18))
-            & Clause(self.user.name == 'Nikita')
-        ))
-        expected = 'SELECT * FROM "users" ' + \
-            'WHERE ("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18) ' + \
-            'AND "users"."name" = \'Nikita\''
+                   'WHERE ("users"."name" = \'O\'\'Reilly\' OR ' + \
+                   '"users"."age" >= 18 AND "users"."name" = \'Nikita\')'
 
         self.assertEqual(query, expected)
 
@@ -170,8 +160,8 @@ class TestCase(unittest.TestCase):
             & Clause(self.user.name == 'Nikita') | True
         ))
         expected = 'SELECT * FROM "users" ' + \
-            'WHERE (("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18) ' + \
-            'AND "users"."name" = \'Nikita\' OR true)'
+                   'WHERE (("users"."name" = \'O\'\'Reilly\' OR "users"."age" >= 18) ' + \
+                   'AND "users"."name" = \'Nikita\' OR true)'
 
         self.assertEqual(query, expected)
 
@@ -240,7 +230,7 @@ class TestCase(unittest.TestCase):
             self.user.name,
         ))
         expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
-            'GROUP BY "users"."name"'
+                   'GROUP BY "users"."name"'
 
         self.assertEqual(query, expected)
 
@@ -251,7 +241,7 @@ class TestCase(unittest.TestCase):
             self.user.name,
         ))
         expected = 'SELECT "users"."name", array_agg("users"."age") FROM "users" ' + \
-            'GROUP BY "users"."name"'
+                   'GROUP BY "users"."name"'
 
         self.assertEqual(query, expected)
 
@@ -262,9 +252,9 @@ class TestCase(unittest.TestCase):
             self.user.name,
         ).having(
             self.user.name.count() > 1,
-        ))
+            ))
         expected = 'SELECT "users"."name", avg("users"."age") FROM "users" ' + \
-            'GROUP BY "users"."name" HAVING count("users"."name") > 1'
+                   'GROUP BY "users"."name" HAVING count("users"."name") > 1'
 
         self.assertEqual(query, expected)
 
@@ -276,7 +266,7 @@ class TestCase(unittest.TestCase):
             join_type=LEFT_JOIN,
         ))
         expected = 'SELECT * FROM "users" ' + \
-            'LEFT JOIN "users_pets" ON "users"."id" = "users_pets"."users_id"'
+                   'LEFT JOIN "users_pets" ON "users"."id" = "users_pets"."users_id"'
 
         self.assertEqual(query, expected)
 
@@ -286,7 +276,7 @@ class TestCase(unittest.TestCase):
             join_type=LEFT_JOIN,
         ))
         expected = 'SELECT * FROM "users" AS "u" ' + \
-            'LEFT JOIN "users_pets" AS "up" ON "u"."id" = "up"."users_id"'
+                   'LEFT JOIN "users_pets" AS "up" ON "u"."id" = "up"."users_id"'
 
         self.assertEqual(query, expected)
 
@@ -306,8 +296,8 @@ class TestCase(unittest.TestCase):
             Clause(self.user.id_ == self.user_pet.users_id)
         ))
         expected = 'WITH "pets" AS ' + \
-            '(SELECT "users_pets"."users_id" FROM "users_pets") ' + \
-            'SELECT "u"."name" FROM "users" AS "u" WHERE "u"."id" = "pets"."users_id"'
+                   '(SELECT "users_pets"."users_id" FROM "users_pets") ' + \
+                   'SELECT "u"."name" FROM "users" AS "u" WHERE "u"."id" = "pets"."users_id"'
 
         # TODO: aliasing in where clause WHERE "u"."id" = "pets"."users_id" AS "master_id"
         self.assertEqual(query, expected)
@@ -322,7 +312,7 @@ class TestCase(unittest.TestCase):
             (('Nikita', 23),),
         ))
         expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
-            'VALUES (\'Nikita\', 23)'
+                   'VALUES (\'Nikita\', 23)'
 
         self.assertEqual(query, expected)
 
@@ -331,9 +321,17 @@ class TestCase(unittest.TestCase):
             self.user.select(
                 self.user.name,
                 self.user.age + 3,
-            ),
+                ),
         ))
         expected = 'INSERT INTO "users" ("users"."name", "users"."age") ' + \
-            'SELECT "users"."name", "users"."age" + 3 FROM "users"'
+                   'SELECT "users"."name", "users"."age" + 3 FROM "users"'
 
         self.assertEqual(query, expected)
+
+    # TODO: this test fails due to table prefixing
+    # def test_update(self):
+    #     """Tests simple updates"""
+    #     query = str(self.user.update(self.user.name == 'Andrew'))
+    #     expected = 'UPDATE "users" SET "name" = \'Andrew\''
+    #
+    #     self.assertEqual(query, expected)

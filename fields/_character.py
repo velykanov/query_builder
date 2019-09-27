@@ -23,16 +23,10 @@ class Varchar(Text):
     _type = 'varchar'
     _has_constraints = True
 
-    def __init__(self, name, alias=None, table=None, quote=True, max_length=1):
+    def __init__(self, name, alias=None, table=None, max_length=1):
         self.max_length = max_length
 
-        super(Varchar, self).__init__(
-            name,
-            alias,
-            table,
-            quote,
-            max_length=max_length,
-        )
+        super(Varchar, self).__init__(name, alias, table, max_length=max_length)
 
     def _check_constraints(self, value):
         if isinstance(value, Field):

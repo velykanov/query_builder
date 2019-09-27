@@ -12,7 +12,7 @@ class Date(Field):
 class Time(Field):
     _type = 'time'
 
-    def __init__(self, name, alias=None, table=None, quote=True, precision=None, with_tz=False):
+    def __init__(self, name, alias=None, table=None, precision=None, with_tz=False):
         if with_tz:
             self._type = 'timetz'
 
@@ -26,7 +26,6 @@ class Time(Field):
             name,
             alias,
             table,
-            quote,
             precision=precision,
             with_tz=with_tz,
         )
@@ -35,7 +34,7 @@ class Time(Field):
 class Timestamp(Field):
     _type = 'timestamp'
 
-    def __init__(self, name, alias=None, table=None, quote=True, precision=None, with_tz=False):
+    def __init__(self, name, alias=None, table=None, precision=None, with_tz=False):
         if with_tz:
             self._type = 'timestamptz'
 
@@ -49,7 +48,6 @@ class Timestamp(Field):
             name,
             alias,
             table,
-            quote,
             precision=precision,
             with_tz=with_tz,
         )

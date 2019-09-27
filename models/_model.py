@@ -7,7 +7,7 @@ from ._constants import (
     JOIN,
     LEFT_JOIN,
     LEFT_OUTER_JOIN,
-    RIGTH_JOIN,
+    RIGHT_JOIN,
     RIGHT_OUTER_JOIN
 )
 
@@ -330,7 +330,7 @@ class Model:  # pylint: disable=too-many-public-methods
 
         possible_join_types = [
             CROSS_JOIN, FULL_JOIN, FULL_OUTER_JOIN, INNER_JOIN, JOIN, LEFT_JOIN,
-            LEFT_OUTER_JOIN, RIGTH_JOIN, RIGHT_OUTER_JOIN,
+            LEFT_OUTER_JOIN, RIGHT_JOIN, RIGHT_OUTER_JOIN,
         ]
 
         if join_type not in possible_join_types:
@@ -387,7 +387,7 @@ class Model:  # pylint: disable=too-many-public-methods
         """
         Puts right join condition into inner state (look at :func:`~Model.join`)
         """
-        return self.join(model, condition, RIGTH_JOIN)
+        return self.join(model, condition, RIGHT_JOIN)
 
     def right_outer_join(self, model, condition):
         """

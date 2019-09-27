@@ -3,6 +3,7 @@ from ._field import Field
 
 
 class Monetary(Field):
+    """Monetary field type. Look at :class:`~Field`"""
     _type = 'monetary'
     _min = -92233720368547758.08
     _max = 92233720368547758.07

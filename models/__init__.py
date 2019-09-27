@@ -6,7 +6,7 @@ from ._constants import INNER_JOIN
 from ._constants import JOIN
 from ._constants import LEFT_JOIN
 from ._constants import LEFT_OUTER_JOIN
-from ._constants import RIGTH_JOIN
+from ._constants import RIGHT_JOIN
 from ._constants import RIGHT_OUTER_JOIN
 
 from ._model import Model

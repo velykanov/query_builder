@@ -120,7 +120,7 @@ class Decimal(Field):
         Wraps field into max(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('max')
 
@@ -129,7 +129,7 @@ class Decimal(Field):
         Wraps field into min(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('min')
 
@@ -138,7 +138,7 @@ class Decimal(Field):
         Wraps field into avg(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('avg')
 
@@ -147,7 +147,7 @@ class Decimal(Field):
         Wraps field into ceil(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('ceil')
 
@@ -156,7 +156,7 @@ class Decimal(Field):
         Wraps field into degrees(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('degrees')
 
@@ -165,7 +165,7 @@ class Decimal(Field):
         Wraps field into exp(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('exp')
 
@@ -174,7 +174,7 @@ class Decimal(Field):
         Wraps field into floor(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('floor')
 
@@ -183,7 +183,7 @@ class Decimal(Field):
         Wraps field into ln(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('ln')
 
@@ -192,7 +192,7 @@ class Decimal(Field):
         Wraps field into radians(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('radians')
 
@@ -201,7 +201,7 @@ class Decimal(Field):
         Wraps field into sign(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('sign')
 
@@ -210,7 +210,7 @@ class Decimal(Field):
         Wraps field into sqrt(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('sqrt')
 
@@ -219,7 +219,7 @@ class Decimal(Field):
         Wraps field into qbrt(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('cbrt')
 
@@ -228,7 +228,7 @@ class Decimal(Field):
         Wraps field into sin(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('sin')
 
@@ -237,7 +237,7 @@ class Decimal(Field):
         Wraps field into cos(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('cos')
 
@@ -246,7 +246,7 @@ class Decimal(Field):
         Wraps field into asin(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('asin')
 
@@ -255,7 +255,7 @@ class Decimal(Field):
         Wraps field into acos(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('acos')
 
@@ -264,7 +264,7 @@ class Decimal(Field):
         Wraps field into tan(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('tan')
 
@@ -273,7 +273,7 @@ class Decimal(Field):
         Wraps field into cot(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('cot')
 
@@ -282,7 +282,7 @@ class Decimal(Field):
         Wraps field into atan(field)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('atan')
 
@@ -294,7 +294,7 @@ class Decimal(Field):
             value (object): atan2 function argument (**required**)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('atan2', value)
 
@@ -308,7 +308,7 @@ class Decimal(Field):
             count (object): width_bucket function argument (**required**)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('width_bucket', left_bound, right_bound, count)
 
@@ -320,7 +320,7 @@ class Decimal(Field):
             value (object): mod function argument (**required**)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('mod', value)
 
@@ -332,7 +332,7 @@ class Decimal(Field):
             value (object): div function argument (**required**)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('div', value)
 
@@ -344,7 +344,7 @@ class Decimal(Field):
             value (object): power function argument (**required**)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('power', value)
 
@@ -356,7 +356,7 @@ class Decimal(Field):
             places (object): round function argument (``0`` - default)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('round', places)
 
@@ -368,7 +368,7 @@ class Decimal(Field):
             places (object): trunc function argument (``0`` - default)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('trunc', places)
 
@@ -380,7 +380,7 @@ class Decimal(Field):
             base (object): log function argument (``10`` - default)
 
         Returns:
-            self: Instance with changed inner state
+            Field: Same object with changed inner state
         """
         return self._wrap_function('log', base, inverse=True)
 

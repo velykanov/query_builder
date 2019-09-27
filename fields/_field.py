@@ -306,7 +306,7 @@ class Field:
 
     def cast(self, as_type):
         """
-        Casts field ad specified type
+        Casts field as specified type
 
         Args:
             as_type (str): Type to cast field as (**required**)
@@ -326,7 +326,7 @@ class Field:
 
     def count(self):
         """
-        Wraps field in COUNT function
+        Wraps field into count(field)
 
         Returns:
             Field: Object with changed inner state
@@ -335,7 +335,7 @@ class Field:
 
     def array_agg(self):
         """
-        Wraps field in ARRAY_AGG function
+        Wraps field in array_agg(field)
 
         Returns:
             Field: Object with changed inner state

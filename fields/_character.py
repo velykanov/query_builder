@@ -3,6 +3,7 @@ from ._field import Field
 
 
 class Text(Field):
+    """Text field type"""
     _type = 'text'
 
     def __add__(self, other):
@@ -13,13 +14,26 @@ class Text(Field):
         return self._general_operation(other, '||', inverse=True)
 
     def upper(self):
+        """
+        Wraps field into upper(field)
+
+        Returns:
+            Field: Same object with changed inner state
+        """
         return self._wrap_function('upper')
 
     def lower(self):
+        """
+        Wraps field into lower(field)
+
+        Returns:
+            Field: Same object with changed inner state
+        """
         return self._wrap_function('lower')
 
 
 class Varchar(Text):
+    """Varchar field type"""
     _type = 'varchar'
     _has_constraints = True
 
@@ -39,4 +53,5 @@ class Varchar(Text):
 
 
 class Char(Varchar):
+    """Char field type"""
     _type = 'char'

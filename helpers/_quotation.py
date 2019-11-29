@@ -3,8 +3,7 @@ import json
 
 
 def quote_ident(ident):
-    """
-    Quotes identity
+    """Quotes identity
 
     Args:
         ident (str): Identity (**required**)
@@ -21,8 +20,7 @@ def quote_ident(ident):
 
 
 def quote_literal(literal):
-    """
-    Quotes literal
+    """Quotes literal
 
     Args:
         literal (str): DB literal (**required**)
@@ -34,8 +32,8 @@ def quote_literal(literal):
         return None
 
     if '.' in literal:
-        table, column = literal.split('.', 1)
+        parts = literal.split('.')
 
-        return '"{}"."{}"'.format(table, column)
+        return '.'.join('"{}"'.format(part) for part in parts)
 
     return '"{}"'.format(literal)

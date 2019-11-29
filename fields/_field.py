@@ -9,7 +9,6 @@ from .. import helpers
 
 
 # TODO: fix interaction with operations and functions
-# TODO: add schema support
 class Field:
     """
     General field class. Exists as an abstract
@@ -18,6 +17,7 @@ class Field:
         name (str): Column name in DB (**required**)
         alias (str): Alias for column (``None`` - default)
         table (str): Table name for prefixing (``None`` - default)
+        schema (str): Table schema for prefixing (``None`` - default)
 
     Raises:
         TypeError: in case operation is not allowed
@@ -30,10 +30,11 @@ class Field:
     _functions = None
     _operations = None
 
-    def __init__(self, name, alias=None, table=None, **kwargs):
+    def __init__(self, name, alias=None, table=None, schema=None, **kwargs):
         self.name = name
         self._alias = alias
         self._table = table
+        self._schema = schema
 
         self.kwargs = kwargs
 
@@ -168,7 +169,7 @@ class Field:
         if self._alias is None:
             return result
 
-        return '{} AS {}'.format(result, self._alias)
+        return '{} AS {}'.format(result, helpers.quote_literal(self._alias))
 
     def _format_field(self, value=None):
         if value is None:
@@ -176,9 +177,14 @@ class Field:
 
         name = helpers.quote_literal(value.name)
         if getattr(value, '_table', None) is not None:
-            name = '{}.{}'.format(
-                helpers.quote_literal(getattr(value, '_table')),
-                name,
+            name = helpers.quote_literal(
+                '.'.join(
+                    filter(None, [
+                        getattr(value, '_schema', None),
+                        getattr(value, '_table', None),
+                        value.name,
+                    ])
+                )
             )
 
         if getattr(value, '_functions', None) is not None:
@@ -207,7 +213,11 @@ class Field:
             raise NotImplementedError('implement in child class')
 
     def _general_operation(
-            self, other, operand, need_parenthesis=False, inverse=False,
+        self,
+        other,
+        operand,
+        need_parenthesis=False,
+        inverse=False,
     ):
         name = None
         other_value = None
@@ -249,7 +259,13 @@ class Field:
         return instance
 
     def _wrap_function(self, func_name, *args, inverse=False):
-        instance = self.__class__(self.name, self._alias, self._table, **self.kwargs)
+        instance = self.__class__(
+            self.name,
+            self._alias,
+            self._table,
+            self._schema,
+            **self.kwargs,
+        )
         setattr(instance, '_operations', self._operations)
         self._alias = None
 
@@ -286,21 +302,23 @@ class Field:
         Returns:
             Field: Same object with changed inner state
         """
-        self._alias = helpers.quote_literal(alias)
+        self._alias = alias
 
         return self
 
-    def set_table_prefix(self, table):
+    def set_table_prefix(self, table, schema):
         """
         Sets table extension
 
         Args:
             table (str): Table name (**required**)
+            schema (str): Schema name (**required**)
 
         Returns:
             Field: Same object with changed inner state
         """
         self._table = table
+        self._schema = schema
 
         return self
 
@@ -317,7 +335,13 @@ class Field:
         operation = 'cast({} as {})'.format(self, as_type)
 
         if self._operations is None:
-            return self.__class__(operation, self._alias, self._table, **self.kwargs)
+            return self.__class__(
+                operation,
+                self._alias,
+                self._table,
+                self._schema,
+                **self.kwargs,
+            )
 
         # TODO: the worst implementation ever
         self._operations[2] = operation
